@@ -1,100 +1,91 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    deployment.kubernetes.io/revision: "1"
-  creationTimestamp: "2021-05-29T16:56:50Z"
-  generation: 1
   labels:
     app: not-a-google-drive-server
   managedFields:
-  - apiVersion: apps/v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:metadata:
-        f:labels:
-          .: {}
-          f:app: {}
-      f:spec:
-        f:progressDeadlineSeconds: {}
-        f:replicas: {}
-        f:revisionHistoryLimit: {}
-        f:selector:
-          f:matchLabels:
+    - apiVersion: apps/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
             .: {}
-            f:app: {}
-        f:strategy:
-          f:rollingUpdate:
-            .: {}
-            f:maxSurge: {}
-            f:maxUnavailable: {}
-          f:type: {}
-        f:template:
-          f:metadata:
-            f:labels:
+            'f:app': {}
+        'f:spec':
+          'f:progressDeadlineSeconds': {}
+          'f:replicas': {}
+          'f:revisionHistoryLimit': {}
+          'f:selector':
+            'f:matchLabels':
               .: {}
-              f:app: {}
-          f:spec:
-            f:containers:
-              k:{"name":"not-a-google-drive-backend-sha256-1"}:
+              'f:app': {}
+          'f:strategy':
+            'f:rollingUpdate':
+              .: {}
+              'f:maxSurge': {}
+              'f:maxUnavailable': {}
+            'f:type': {}
+          'f:template':
+            'f:metadata':
+              'f:labels':
                 .: {}
-                f:image: {}
-                f:imagePullPolicy: {}
-                f:name: {}
-                f:resources: {}
-                f:terminationMessagePath: {}
-                f:terminationMessagePolicy: {}
-            f:dnsPolicy: {}
-            f:restartPolicy: {}
-            f:schedulerName: {}
-            f:securityContext: {}
-            f:terminationGracePeriodSeconds: {}
-    manager: GoogleCloudConsole
-    operation: Update
-    time: "2021-05-29T16:56:50Z"
-  - apiVersion: apps/v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:metadata:
-        f:annotations:
-          .: {}
-          f:deployment.kubernetes.io/revision: {}
-      f:status:
-        f:availableReplicas: {}
-        f:conditions:
-          .: {}
-          k:{"type":"Available"}:
+                'f:app': {}
+            'f:spec':
+              'f:containers':
+                'k:{"name":"not-a-google-drive-backend-sha256-1"}':
+                  .: {}
+                  'f:image': {}
+                  'f:imagePullPolicy': {}
+                  'f:name': {}
+                  'f:resources': {}
+                  'f:terminationMessagePath': {}
+                  'f:terminationMessagePolicy': {}
+              'f:dnsPolicy': {}
+              'f:restartPolicy': {}
+              'f:schedulerName': {}
+              'f:securityContext': {}
+              'f:terminationGracePeriodSeconds': {}
+      manager: GoogleCloudConsole
+      operation: Update
+      time: '2021-05-29T17:06:53Z'
+    - apiVersion: apps/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
             .: {}
-            f:lastTransitionTime: {}
-            f:lastUpdateTime: {}
-            f:message: {}
-            f:reason: {}
-            f:status: {}
-            f:type: {}
-          k:{"type":"Progressing"}:
+            'f:deployment.kubernetes.io/revision': {}
+        'f:status':
+          'f:availableReplicas': {}
+          'f:conditions':
             .: {}
-            f:lastTransitionTime: {}
-            f:lastUpdateTime: {}
-            f:message: {}
-            f:reason: {}
-            f:status: {}
-            f:type: {}
-        f:observedGeneration: {}
-        f:readyReplicas: {}
-        f:replicas: {}
-        f:updatedReplicas: {}
-    manager: kube-controller-manager
-    operation: Update
-    time: "2021-05-29T16:56:53Z"
+            'k:{"type":"Available"}':
+              .: {}
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:reason': {}
+              'f:status': {}
+              'f:type': {}
+            'k:{"type":"Progressing"}':
+              .: {}
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:reason': {}
+              'f:status': {}
+              'f:type': {}
+          'f:observedGeneration': {}
+          'f:readyReplicas': {}
+          'f:replicas': {}
+          'f:updatedReplicas': {}
+      manager: kube-controller-manager
+      operation: Update
+      time: '2021-05-29T17:06:56Z'
   name: not-a-google-drive-server
   namespace: default
-  resourceVersion: "3188803"
-  selfLink: /apis/apps/v1/namespaces/default/deployments/not-a-google-drive-server
-  uid: ba297a92-f4b3-47d5-8a54-c1df07460bbc
 spec:
-  progressDeadlineSeconds: 600
   replicas: 3
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: not-a-google-drive-server
@@ -105,38 +96,169 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: not-a-google-drive-server
     spec:
       containers:
-      - image: gcr.io/emerald-folio-314609/github.com/awesomepractice/not-a-google-drive-backend@sha256:2668a577a09e183f9eac2087633f434d7287b329a68e8a0e8c5266ca28119297
-        imagePullPolicy: IfNotPresent
-        name: not-a-google-drive-backend-sha256-1
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
-status:
-  availableReplicas: 3
-  conditions:
-  - lastTransitionTime: "2021-05-29T16:56:53Z"
-    lastUpdateTime: "2021-05-29T16:56:53Z"
-    message: Deployment has minimum availability.
-    reason: MinimumReplicasAvailable
-    status: "True"
-    type: Available
-  - lastTransitionTime: "2021-05-29T16:56:50Z"
-    lastUpdateTime: "2021-05-29T16:56:53Z"
-    message: ReplicaSet "not-a-google-drive-server-6495fb8fdf" has successfully progressed.
-    reason: NewReplicaSetAvailable
-    status: "True"
-    type: Progressing
-  observedGeneration: 1
-  readyReplicas: 3
-  replicas: 3
-  updatedReplicas: 3
+        - image: >-
+            gcr.io/emerald-folio-314609/github.com/awesomepractice/not-a-google-drive-backend
+          imagePullPolicy: IfNotPresent
+          name: not-a-google-drive-backend-sha256-1
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  labels:
+    app: not-a-google-drive-server
+  managedFields:
+    - apiVersion: autoscaling/v2beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
+            .: {}
+            'f:app': {}
+        'f:spec':
+          'f:maxReplicas': {}
+          'f:metrics': {}
+          'f:minReplicas': {}
+          'f:scaleTargetRef':
+            'f:apiVersion': {}
+            'f:kind': {}
+            'f:name': {}
+      manager: GoogleCloudConsole
+      operation: Update
+      time: '2021-05-29T17:06:53Z'
+    - apiVersion: autoscaling/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:autoscaling.alpha.kubernetes.io/conditions': {}
+        'f:status':
+          'f:currentReplicas': {}
+      manager: vpa-recommender
+      operation: Update
+      time: '2021-05-29T17:07:08Z'
+  name: not-a-google-drive-server-hpa-bdfm
+  namespace: default
+spec:
+  maxReplicas: 5
+  metrics:
+    - resource:
+        name: cpu
+        targetAverageUtilization: 80
+      type: Resource
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: not-a-google-drive-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/neg: '{"ingress":true}'
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    app: not-a-google-drive-server
+  managedFields:
+    - apiVersion: v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
+            .: {}
+            'f:app': {}
+        'f:spec':
+          'f:externalTrafficPolicy': {}
+          'f:ports':
+            .: {}
+            'k:{"port":80,"protocol":"TCP"}':
+              .: {}
+              'f:name': {}
+              'f:port': {}
+              'f:protocol': {}
+              'f:targetPort': {}
+            'k:{"port":5000,"protocol":"TCP"}':
+              .: {}
+              'f:name': {}
+              'f:port': {}
+              'f:protocol': {}
+              'f:targetPort': {}
+            'k:{"port":5001,"protocol":"TCP"}':
+              .: {}
+              'f:name': {}
+              'f:port': {}
+              'f:protocol': {}
+              'f:targetPort': {}
+            'k:{"port":49172,"protocol":"TCP"}':
+              .: {}
+              'f:name': {}
+              'f:port': {}
+              'f:protocol': {}
+              'f:targetPort': {}
+          'f:selector':
+            .: {}
+            'f:app': {}
+          'f:sessionAffinity': {}
+          'f:type': {}
+      manager: GoogleCloudConsole
+      operation: Update
+      time: '2021-05-29T12:53:30Z'
+    - apiVersion: v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:finalizers':
+            .: {}
+            'v:"service.kubernetes.io/load-balancer-cleanup"': {}
+        'f:status':
+          'f:loadBalancer':
+            'f:ingress': {}
+      manager: kube-controller-manager
+      operation: Update
+      time: '2021-05-29T12:54:01Z'
+    - apiVersion: v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            'f:gcb-build-id': {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2021-05-29T16:24:33Z'
+  name: not-a-google-drive-server-service
+  namespace: default
+spec:
+  clusterIP: 10.28.7.29
+  externalTrafficPolicy: Cluster
+  ports:
+    - name: 80-to-80-tcp
+      nodePort: 31348
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: 5000-to-5000-tcp
+      nodePort: 30172
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
+    - name: 5001-to-5001-tcp
+      nodePort: 30416
+      port: 5001
+      protocol: TCP
+      targetPort: 5001
+    - name: 49172-to-49172-tcp
+      nodePort: 32542
+      port: 49172
+      protocol: TCP
+      targetPort: 49172
+  selector:
+    app: not-a-google-drive-server
+  sessionAffinity: None
+  type: LoadBalancer
