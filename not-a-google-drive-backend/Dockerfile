@@ -20,4 +20,4 @@ FROM base AS final
 WORKDIR /app
 RUN mkdir -p /app/saved_files
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "not-a-google-drive-backend.dll"]
+ENTRYPOINT ["dotnet", "not-a-google-drive-backend.dll", "--urls=http://172.17.0.2:80", "environment=Development"]
