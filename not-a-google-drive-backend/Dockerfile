@@ -7,7 +7,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["not-a-google-drive-backend.csproj", "not-a-google-drive-backend/"]
+COPY ["not-a-google-drive-backend/not-a-google-drive-backend.csproj", "not-a-google-drive-backend/"]
 RUN dotnet restore "not-a-google-drive-backend/not-a-google-drive-backend.csproj"
 COPY . .
 WORKDIR "/src/not-a-google-drive-backend"
