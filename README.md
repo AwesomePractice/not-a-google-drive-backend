@@ -1,5 +1,6 @@
 # not-a-google-drive-backend
 
+# Swagger: http://34.105.195.56/swagger/index.html
 ## ASP.NET Core Docker containers startup
 
 This sample demonstrates how to build container images for ASP.NET Core web apps. You can use these samples for Linux and Windows containers, for x64, ARM32 and ARM64 architectures.
