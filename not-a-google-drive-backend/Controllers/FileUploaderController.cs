@@ -39,5 +39,12 @@ namespace not_a_google_drive_backend.Controllers
             string[] filePaths = Directory.GetFiles("saved_files");
             return Ok(new ListOfFiles() { Filenames = filePaths.ToList()});
         }
+
+        [HttpGet("AutoDeployCheck")]
+        public async Task<ActionResult<ListOfFiles>> GetString()
+        {
+            
+            return Ok("Autodeploy to kubernetes works!");
+        }
     }
 }
