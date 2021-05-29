@@ -43,7 +43,6 @@ namespace not_a_google_drive_backend.Controllers
         [HttpGet("AutoDeployCheck")]
         public async Task<ActionResult<ListOfFiles>> GetString()
         {
-            
             return Ok("Autodeploy to kubernetes works!");
         }
     }
