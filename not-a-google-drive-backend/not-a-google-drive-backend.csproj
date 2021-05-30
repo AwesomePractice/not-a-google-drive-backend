@@ -16,4 +16,8 @@
     <Folder Include="saved_files\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DatabaseModule\DatabaseModule.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DatabaseModule.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,16 +7,28 @@ using System.Threading.Tasks;
 
 namespace DatabaseModule
 {
-    public static class DBConnectionService
+    public class DBConnectionService
     {
+        private static IMongoRepository<User> _usersRepository;
 
-        static RepositoryService()
+        public static IMongoRepository<User> UsersRepository 
+        { 
+            get { return _usersRepository; } 
+        }
+
+        private MongoDbSettings _dbSettings;
+
+        public DBConnectionService(string connectionStr, string dbName)
         {
-            MongoDbSettings _dbSettings = new MongoDbSettings();
-            _dbSettings.ConnectionString = ConfigurationManager.AppSettings["db_connection"];
-            _dbSettings.DatabaseName = ConfigurationManager.AppSettings["db_name"];
+           if(_dbSettings == null)
+            {
+                _dbSettings = new MongoDbSettings();
+                _dbSettings.ConnectionString = connectionStr;
+                _dbSettings.DatabaseName = dbName;
 
-           
+                _usersRepository = new MongoRepository<User>(_dbSettings);
+               
+            } 
         }
     }
 }
