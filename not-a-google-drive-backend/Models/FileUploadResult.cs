@@ -1,6 +1,6 @@
 using System;
 
-namespace not_a_google_drive_backend
+namespace not_a_google_drive_backend.Models
 {
     public class FileUploadResult
     {
