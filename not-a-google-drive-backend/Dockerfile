@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-WORKDIR /src
+
 
 COPY ["not-a-google-drive-backend.csproj", "not-a-google-drive-backend/"]
 COPY ["DatabaseModule/DatabaseModule.csproj", "not-a-google-drive-backend/"]
