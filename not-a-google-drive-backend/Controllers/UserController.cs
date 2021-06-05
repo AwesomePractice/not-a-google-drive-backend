@@ -1,4 +1,5 @@
 ﻿using DatabaseModule;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,6 @@ namespace not_a_google_drive_backend.Controllers
             return Ok("User was added");
         }
 
-
         [HttpPost("SignIn")]
         public async Task<ActionResult<object>> SignInAsync(Credentials cred)
         {
@@ -69,11 +69,13 @@ namespace not_a_google_drive_backend.Controllers
             return Ok(result);
         }
 
-        //[HttpGet("GetUser")]
-        //public async Task<ActionResult<List<User>>> GetUserByLogin(string login)
-        //{
-        //    return Ok(DBConnectionService.UsersRepository.FilterBy(x => x.Login == login).ToList().ConvertAll(x => new User() {Login = x.Login, FirstName = x.FirstName }));
-        //}
+        [Authorize]
+        [HttpGet("GetMyUsername")]
+        public async Task<ActionResult<string>> GetUsername()
+        {
+          
+            return Ok(User.Identity);
+        }
 
         //[HttpGet("GetConnectionDBString")]
         //public async Task<ActionResult<List<User>>> GetConDBString()
