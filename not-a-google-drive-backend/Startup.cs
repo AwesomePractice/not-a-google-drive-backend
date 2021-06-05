@@ -1,3 +1,5 @@
+using DatabaseModule;
+using DatabaseModule.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using not_a_google_drive_backend.Tools;
@@ -60,6 +63,18 @@ namespace not_a_google_drive_backend
                             ValidateIssuerSigningKey = true,
                         };
                     });
+            #endregion
+
+
+            #region Database setup
+            services.Configure<MongoDbSettings>(
+                Configuration.GetSection(nameof(MongoDbSettings)));
+
+            services.AddSingleton<IMongoDbSettings>(sp =>
+                sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+
+
+            services.AddSingleton<MongoRepository<User>>();
             #endregion
         }
 

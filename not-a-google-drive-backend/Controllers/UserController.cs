@@ -1,4 +1,5 @@
 ﻿using DatabaseModule;
+using DatabaseModule.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -21,11 +22,13 @@ namespace not_a_google_drive_backend.Controllers
         private readonly ILogger<UserController> _logger;
         protected readonly IConfiguration _configuration;
 
-        public UserController(IConfiguration configuration, ILogger<UserController> logger)
+        private readonly IMongoRepository<User> _usersRepository;
+
+        public UserController(IConfiguration configuration, MongoRepository<User> userRep, ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
-            new DBConnectionService(_configuration.GetValue<string>("DB_connection"), _configuration.GetValue<string>("DB_name"));
+            _usersRepository = userRep;
         }
 
         [HttpPost("SignUp")]
@@ -35,13 +38,13 @@ namespace not_a_google_drive_backend.Controllers
             {
                 return BadRequest("Password is not strong enough");
             }
-            if(await DBConnectionService.UsersRepository.FindOneAsync(x => x.Login == user.Login) != null)
+            if(await _usersRepository.FindOneAsync(x => x.Login == user.Login) != null)
             {
                 return BadRequest("Login is already used");
             }
 
             var salt = PasswordManager.GenerateSalt_128();
-            await DBConnectionService.UsersRepository.InsertOneAsync(new DatabaseModule.Entities.User()
+            await _usersRepository.InsertOneAsync(new DatabaseModule.Entities.User()
             {
                 Login = user.Login,
                 FirstName = user.FirstName,
@@ -56,7 +59,7 @@ namespace not_a_google_drive_backend.Controllers
         [HttpPost("SignIn")]
         public async Task<ActionResult<object>> SignInAsync(Credentials cred)
         {
-            var user = await DBConnectionService.UsersRepository.FindOneAsync(x => x.Login == cred.Login);
+            var user = await _usersRepository.FindOneAsync(x => x.Login == cred.Login);
             if(user == null)
             {
                 return BadRequest("Login does not exist!");
@@ -69,12 +72,12 @@ namespace not_a_google_drive_backend.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("GetMyUsername")]
         public async Task<ActionResult<string>> GetUsername()
         {
           
-            return Ok(User.Identity);
+            return Ok(User.Identity.Name);
         }
 
         //[HttpGet("GetConnectionDBString")]

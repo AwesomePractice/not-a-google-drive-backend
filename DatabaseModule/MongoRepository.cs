@@ -19,7 +19,7 @@ namespace DatabaseModule
             return _collection;
         }
 
-        public MongoRepository(MongoDbSettings settings)
+        public MongoRepository(IMongoDbSettings settings)
         {
             var database = new MongoClient(settings.ConnectionString).GetDatabase(settings.DatabaseName);
             _collection = database.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
