@@ -12,8 +12,8 @@ namespace DatabaseModule.Entities
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        //[BsonDateTimeOptions(DateOnly = true)]
-        //public DateTime BirthDate { get; set; }
+        [BsonDateTimeOptions(DateOnly = true)]
+        public DateTime BirthDate { get; set; }
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }
     }

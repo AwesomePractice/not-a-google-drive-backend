@@ -5,9 +5,14 @@ VisualStudioVersion = 16.0.31112.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "not-a-google-drive-backend", "not-a-google-drive-backend\not-a-google-drive-backend.csproj", "{0B727879-DA78-4350-8068-C1CC9EDF1F31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseModule", "DatabaseModule\DatabaseModule.csproj", "{DCF1E5DD-7ACF-4C27-B894-740825550145}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseModule", "DatabaseModule\DatabaseModule.csproj", "{DCF1E5DD-7ACF-4C27-B894-740825550145}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{730B9A2D-AFA3-491F-AAEE-E90D7F7F30C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{730B9A2D-AFA3-491F-AAEE-E90D7F7F30C1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{958DE227-8746-4E03-9962-DB9C36446BE6}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
