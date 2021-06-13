@@ -23,12 +23,14 @@ namespace not_a_google_drive_backend.Controllers
         protected readonly IConfiguration _configuration;
 
         private readonly IMongoRepository<User> _usersRepository;
+        private readonly IMongoRepository<Folder> _foldersRepository;
 
-        public UserController(IConfiguration configuration, MongoRepository<User> userRep, ILogger<UserController> logger)
+        public UserController(IConfiguration configuration, MongoRepository<User> userRep, MongoRepository<Folder> folderRep, ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
             _usersRepository = userRep;
+            _foldersRepository = folderRep;
         }
 
         [HttpPost("SignUp")]
@@ -44,7 +46,8 @@ namespace not_a_google_drive_backend.Controllers
             }
 
             var salt = PasswordManager.GenerateSalt_128();
-            await _usersRepository.InsertOneAsync(new DatabaseModule.Entities.User()
+
+            var newUser = new DatabaseModule.Entities.User()
             {
                 Login = user.Login,
                 FirstName = user.FirstName,
@@ -52,7 +55,17 @@ namespace not_a_google_drive_backend.Controllers
                 BirthDate = user.BirthDate.Date,
                 PasswordHash = PasswordManager.GeneratePasswordHash(user.Password, salt),
                 PasswordSalt = salt,
-            });
+            };
+
+            await _usersRepository.InsertOneAsync(newUser);
+
+            await _foldersRepository.InsertOneAsync(new DatabaseModule.Entities.Folder()
+            {
+                Name = "root",
+                OwnerId = newUser.Id,
+                Children = Array.Empty<Folder>()
+            }) ;
+
             return Ok("User was added");
         }
 
