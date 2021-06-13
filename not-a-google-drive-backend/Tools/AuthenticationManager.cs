@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,9 @@ namespace not_a_google_drive_backend.Tools
 {
     public class AuthenticationManager
     {
-        public static object GenerateJWT(Credentials cred, string pwdHash, string pwdSalt)
+        public static object GenerateJWT(Credentials cred, string pwdHash, string pwdSalt, ObjectId id)
         {
-            var identity = GetIdentity(cred, pwdHash, pwdSalt);
+            var identity = GetIdentity(cred, pwdHash, pwdSalt, id);
             if (identity == null)
             {
                 return null;
@@ -40,7 +41,7 @@ namespace not_a_google_drive_backend.Tools
         }
 
 
-        private static ClaimsIdentity GetIdentity(Credentials cred, string pwdHash, string pwdSalt)
+        private static ClaimsIdentity GetIdentity(Credentials cred, string pwdHash, string pwdSalt, ObjectId id)
         {
             byte[] byteArr = Encoding.ASCII.GetBytes(pwdSalt);
             string passwordHashed = PasswordManager.GeneratePasswordHash(cred.Password, byteArr);
@@ -50,7 +51,8 @@ namespace not_a_google_drive_backend.Tools
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, cred.Login),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, cred.Role)
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, cred.Role),
+                    new Claim("UserId", id.ToString())
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

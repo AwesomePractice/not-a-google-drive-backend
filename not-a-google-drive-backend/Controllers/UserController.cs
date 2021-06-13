@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
+using not_a_google_drive_backend.DTO.Response;
 using not_a_google_drive_backend.Models;
 using not_a_google_drive_backend.Tools;
 using System;
@@ -24,13 +25,15 @@ namespace not_a_google_drive_backend.Controllers
 
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
+        private readonly IMongoRepository<File> _filesRepository;
 
-        public UserController(IConfiguration configuration, MongoRepository<User> userRep, MongoRepository<Folder> folderRep, ILogger<UserController> logger)
+        public UserController(IConfiguration configuration, MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep, ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
             _usersRepository = userRep;
             _foldersRepository = folderRep;
+            _filesRepository = fileRep;
         }
 
         [HttpPost("SignUp")]
@@ -77,7 +80,7 @@ namespace not_a_google_drive_backend.Controllers
             {
                 return BadRequest("Login does not exist!");
             }
-            var result = AuthenticationManager.GenerateJWT(cred, user.PasswordHash, user.PasswordSalt);
+            var result = AuthenticationManager.GenerateJWT(cred, user.PasswordHash, user.PasswordSalt, user.Id);
             if(result == null)
             {
                 return BadRequest("Password is incorrect!");
@@ -91,6 +94,15 @@ namespace not_a_google_drive_backend.Controllers
         {
           
             return Ok(User.Identity.Name);
+        }
+
+        [Authorize]
+        [HttpGet("FilesInfo")]
+        public async Task<ActionResult<UserFilesInfo[]>> GetFilesInfo()
+        {
+            ObjectId userId = new ObjectId(User.Claims.First(claim => claim.Type == "UserId").Value);
+
+            
         }
 
         //[HttpGet("GetConnectionDBString")]
