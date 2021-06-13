@@ -102,7 +102,19 @@ namespace not_a_google_drive_backend.Controllers
         {
             ObjectId userId = new ObjectId(User.Claims.First(claim => claim.Type == "UserId").Value);
 
-            
+            var folders = _foldersRepository.FilterBy(folder => folder.OwnerId == userId).ToList();
+            var folderIds = folders.Select(folder => folder.Id);
+
+            var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
+
+
+            UserFilesInfo[] response = folders.Select(folder => new UserFilesInfo()
+            {
+                OwnerId = userId,
+                RootFolder = UserFilesInfo.CombineFilesAndFolders(folder, files)
+            }).ToArray();
+
+            return Ok(response);
         }
 
         //[HttpGet("GetConnectionDBString")]

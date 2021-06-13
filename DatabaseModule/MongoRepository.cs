@@ -44,6 +44,16 @@ namespace DatabaseModule
             return _collection.Find(filterExpression).ToEnumerable();
         }
 
+        public virtual Task<IEnumerable<TDocument>> FilterByAsync(
+            Expression<Func<TDocument, bool>> filterExpression)
+        {
+            return Task.Run(async () =>
+            {
+                var found = await _collection.FindAsync(filterExpression);
+                return found.ToEnumerable();
+            });
+        }
+
         public virtual IEnumerable<TDocument> FilterByLimited(
             Expression<Func<TDocument, bool>> filterExpression, int limit)
         {
