@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using not_a_google_drive_backend.Models;
@@ -47,5 +48,13 @@ namespace not_a_google_drive_backend.Controllers
         //{
         //    return Ok("Autodeploy to kubernetes works!");
         //}
+
+        [Authorize(Roles = "admin")]
+        [HttpGet("GetMyUsername")]
+        public async Task<ActionResult<string>> GetUsername()
+        {
+
+            return Ok(User.Identity.Name);
+        }
     }
 }
