@@ -9,6 +9,7 @@ WORKDIR /src
 
 COPY ["not-a-google-drive-backend/not-a-google-drive-backend.csproj", "not-a-google-drive-backend/"]
 COPY ["DatabaseModule/DatabaseModule.csproj", "DatabaseModule/"]
+COPY ["ExternalStorageServices/ExternalStorageServices.csproj", "ExternalStorageServices/"]
 
 RUN dotnet restore "not-a-google-drive-backend/not-a-google-drive-backend.csproj"
 

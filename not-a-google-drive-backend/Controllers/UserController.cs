@@ -1,12 +1,12 @@
 ﻿using DatabaseModule;
 using DatabaseModule.Entities;
+using DatabaseModule.VO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
-using not_a_google_drive_backend.Models;
 using not_a_google_drive_backend.Tools;
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,9 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
 
-        public UserController(IConfiguration configuration, MongoRepository<User> userRep, MongoRepository<Folder> folderRep, ILogger<UserController> logger)
+        public UserController(IConfiguration configuration, 
+            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, 
+            ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
@@ -77,13 +79,37 @@ namespace not_a_google_drive_backend.Controllers
             {
                 return BadRequest("Login does not exist!");
             }
-            var result = AuthenticationManager.GenerateJWT(cred, user.PasswordHash, user.PasswordSalt);
+            var result = AuthenticationManager.GenerateJWT(cred, user.Id.ToString(), user.PasswordHash, user.PasswordSalt);
             if(result == null)
             {
                 return BadRequest("Password is incorrect!");
             }
             return Ok(result);
         }
+
+        [Authorize]
+        [HttpPost("LinkGoogleBucket")]
+        public async Task<ActionResult<string>> LinkGoogleBucketAsync(DTO.Request.GoogleBucketConfigData data)
+        {
+            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+            if(user.GoogleBucketConfigData != null)
+            {
+                return BadRequest("Service is already linked!");
+            }
+
+            _usersRepository.UpdateOne(User.FindFirst("id").Value, "GoogleBucketConfigData", 
+                new DatabaseModule.VO.GoogleBucketConfigData() { 
+                    Id = ObjectId.GenerateNewId(),
+                    ClientId = data.ClientId,
+                    Secret = data.Secret,
+                    Email = data.Email,
+                    ProjectId = data.ProjectId,
+                    SelectedBucket = data.SelectedBucket
+                }
+            );
+            return Ok("You have linked google bucket to your account");
+        }
+
 
         [Authorize(Roles = "admin")]
         [HttpGet("GetMyUsername")]

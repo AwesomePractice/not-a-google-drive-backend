@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using DatabaseModule.VO;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +12,12 @@ namespace DatabaseModule.Entities
         public string Login { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+
+        #region External storage services data
+
+        public GoogleBucketConfigData GoogleBucketConfigData { get; set; }
+
+        #endregion
 
         [BsonDateTimeOptions(DateOnly = true)]
         public DateTime BirthDate { get; set; }

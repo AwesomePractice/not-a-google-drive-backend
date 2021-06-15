@@ -12,9 +12,9 @@ namespace not_a_google_drive_backend.Tools
 {
     public class AuthenticationManager
     {
-        public static object GenerateJWT(Credentials cred, string pwdHash, string pwdSalt)
+        public static object GenerateJWT(Credentials cred, string userId, string pwdHash, string pwdSalt)
         {
-            var identity = GetIdentity(cred, pwdHash, pwdSalt);
+            var identity = GetIdentity(cred, userId, pwdHash, pwdSalt);
             if (identity == null)
             {
                 return null;
@@ -40,7 +40,7 @@ namespace not_a_google_drive_backend.Tools
         }
 
 
-        private static ClaimsIdentity GetIdentity(Credentials cred, string pwdHash, string pwdSalt)
+        private static ClaimsIdentity GetIdentity(Credentials cred, string userId, string pwdHash, string pwdSalt)
         {
             byte[] byteArr = Encoding.ASCII.GetBytes(pwdSalt);
             string passwordHashed = PasswordManager.GeneratePasswordHash(cred.Password, byteArr);
@@ -49,6 +49,7 @@ namespace not_a_google_drive_backend.Tools
             {
                 var claims = new List<Claim>
                 {
+                    new Claim("id", userId),
                     new Claim(ClaimsIdentity.DefaultNameClaimType, cred.Login),
                     new Claim(ClaimsIdentity.DefaultRoleClaimType, cred.Role)
                 };
