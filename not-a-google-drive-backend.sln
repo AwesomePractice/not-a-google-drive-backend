@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Dockerfile = Dockerfile
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalStorageServices", "ExternalStorageServices\ExternalStorageServices.csproj", "{B95B9973-E276-4BCF-A75B-28F4B07DC63D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{730B9A2D-AFA3-491F-AAEE-E90D7F7F30C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{730B9A2D-AFA3-491F-AAEE-E90D7F7F30C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{730B9A2D-AFA3-491F-AAEE-E90D7F7F30C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B95B9973-E276-4BCF-A75B-28F4B07DC63D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B95B9973-E276-4BCF-A75B-28F4B07DC63D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B95B9973-E276-4BCF-A75B-28F4B07DC63D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B95B9973-E276-4BCF-A75B-28F4B07DC63D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
