@@ -1,12 +1,15 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace not_a_google_drive_backend.Tools
@@ -60,6 +63,32 @@ namespace not_a_google_drive_backend.Tools
                 return claimsIdentity;
             }
             return null;
+        }
+
+        public static ObjectId GetUserId(ClaimsPrincipal User)
+        {
+            return new ObjectId(User.FindFirst("id").Value);
+        }
+
+        internal static DatabaseModule.VO.GoogleBucketConfigData GoogleBucketConfigData(GoogleBucketConfigData data)
+        {
+            return new DatabaseModule.VO.GoogleBucketConfigData()
+            {
+                Id = ObjectId.GenerateNewId(),
+                ClientId = data.ClientId,
+                Secret = data.Secret,
+                Email = data.Email,
+                ProjectId = data.ProjectId,
+                SelectedBucket = data.SelectedBucket
+            };
+        }
+
+        internal static async Task<GoogleBucketConfigData> GetGoogleBucketDefault()
+        {
+            string fileName = "google_bucket.json";
+            string jsonString = await File.ReadAllTextAsync(fileName);
+            GoogleBucketConfigData data = JsonSerializer.Deserialize<GoogleBucketConfigData>(jsonString);
+            return data;
         }
     }
 }

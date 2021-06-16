@@ -50,12 +50,12 @@ namespace ExternalStorageServices.GoogleBucket
             return availableBuckets.Items.ToList().ConvertAll(x => new String(x.Name));
         }
 
-        public bool UploadFile(IFormFile file)
+        public bool UploadFile(IFormFile file, string fileName)
         {
             var newObject = new Google.Apis.Storage.v1.Data.Object()
             {
                 Bucket = BucketToUpload,
-                Name = file.FileName
+                Name = fileName
             };
 
             // Actions with data here encrypting / compressing

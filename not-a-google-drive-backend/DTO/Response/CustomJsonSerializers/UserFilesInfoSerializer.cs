@@ -84,12 +84,17 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
 
         public override void Write(Utf8JsonWriter writer, UserFilesInfoFile value, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(JsonSerializer.Serialize(value, new JsonSerializerOptions { 
-                Converters =
-                {
-                    new ObjectIdSerializer()
-                }
-            }));
+            writer.WriteStartObject();
+            writer.WritePropertyName("id");
+            ObjectIdSerializer objectIdSerializer = new ObjectIdSerializer();
+            objectIdSerializer.Write(writer, value.Id, new JsonSerializerOptions());
+            writer.WriteString("name", value.Name);
+            writer.WriteNumber("size", value.Size);
+            writer.WriteString("type", value.Type);
+            writer.WriteBoolean("encrypted", value.Encrypted);
+            writer.WriteBoolean("compressed", value.Compressed);
+            writer.WriteBoolean("favourite", value.Favourite);
+            writer.WriteEndObject();
         }
     }
 }

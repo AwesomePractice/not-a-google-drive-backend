@@ -1,5 +1,6 @@
 ﻿using DatabaseModule.Entities;
 using MongoDB.Bson;
+using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,14 +45,24 @@ namespace not_a_google_drive_backend.DTO.Response
             Name = file.FileName;
             Size = file.FileSize;
             Type = file.FileType;
+            Encrypted = file.Encrypted;
+            Compressed = file.Compressed;
+            Favourite = file.Favourite;
         }
 
+        //[JsonConverter(typeof(ObjectId))]
         public ObjectId Id;
 
         public string Name;
 
-        public int Size;
+        public long Size;
 
-        public int Type;
+        public string Type;
+
+        public bool Encrypted;
+
+        public bool Compressed;
+
+        public bool Favourite;
     }
 }

@@ -10,7 +10,7 @@ namespace ExternalStorageServices
 {
     interface IStorageAccessor
     {
-        bool UploadFile(IFormFile file);
+        bool UploadFile(IFormFile file, string fileName);
 
         byte[] DownloadFile(string fileId);
 

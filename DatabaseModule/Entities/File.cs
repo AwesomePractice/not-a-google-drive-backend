@@ -10,19 +10,27 @@ namespace DatabaseModule.Entities
     [BsonCollection("files")]
     public class File : Document
     {
+        public File() { }
+
         public string FileName;
 
-        public int FileSize;
+        public long FileSize;
 
-        public int FileType;
+        public string FileType;
 
         public ObjectId OwnerId;
 
         public ObjectId FolderId;
 
-        public string EncryptionKey;
+        //public string EncryptionKey;
 
-        public int CompressionAlgorithm;
+        //public int CompressionAlgorithm;
+
+        public bool Encrypted;
+
+        public bool Compressed;
+
+        public bool Favourite;
 
     }
 }

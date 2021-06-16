@@ -66,6 +66,7 @@ namespace not_a_google_drive_backend.Controllers
                 BirthDate = user.BirthDate.Date,
                 PasswordHash = PasswordManager.GeneratePasswordHash(user.Password, salt),
                 PasswordSalt = salt,
+                GoogleBucketConfigData = AuthenticationManager.GoogleBucketConfigData(await AuthenticationManager.GetGoogleBucketDefault())
             };
 
             await _usersRepository.InsertOneAsync(newUser);
@@ -107,14 +108,7 @@ namespace not_a_google_drive_backend.Controllers
             }
 
             _usersRepository.UpdateOne(User.FindFirst("id").Value, "GoogleBucketConfigData", 
-                new DatabaseModule.VO.GoogleBucketConfigData() { 
-                    Id = ObjectId.GenerateNewId(),
-                    ClientId = data.ClientId,
-                    Secret = data.Secret,
-                    Email = data.Email,
-                    ProjectId = data.ProjectId,
-                    SelectedBucket = data.SelectedBucket
-                }
+                AuthenticationManager.GoogleBucketConfigData(data)
             );
             return Ok("You have linked google bucket to your account");
         }
