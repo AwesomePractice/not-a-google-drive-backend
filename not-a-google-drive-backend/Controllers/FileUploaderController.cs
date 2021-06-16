@@ -146,28 +146,37 @@ namespace not_a_google_drive_backend.Controllers
         }
 
         [Authorize]
-        [HttpGet("DeleteFile")]
-        public async Task<ActionResult> DeleteFileAsync(string fileId)
+        [HttpPost("DeleteFile")]
+        public async Task<ActionResult> DeleteFileAsync(FileIdRequest fileIdRequest)
         {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
+            var file = await _filesRepository.FindByIdAsync(fileIdRequest.FileId);
 
-            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            if (user.GoogleBucketConfigData == null)
+            if (!FileFolderManager.CanAccessFile(userId, file))
             {
-                return BadRequest("You have not linked any cloud storage");
+                return BadRequest("You don't have access to file or it doesn't exist");
             }
 
+            //var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+            //if (user.GoogleBucketConfigData == null)
+            //{
+            //    return BadRequest("You have not linked any cloud storage");
+            //}
 
-            var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.DeleteFile(fileId);
 
-            if (!result)
-            {
-                return BadRequest("Error while deleting your file");
-            }
+            //var serviceConfig = user.GoogleBucketConfigData;
+            //var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
+            //    serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            //var result = googleBucketUploader.DeleteFile(fileId);
 
-            return Ok("File was deleted");
+            //if (!result)
+            //{
+            //    return BadRequest("Error while deleting your file");
+            //}
+
+            await _filesRepository.DeleteByIdAsync(fileIdRequest.FileId);
+
+            return Ok();
         }
 
         [Authorize]
