@@ -78,6 +78,9 @@ namespace not_a_google_drive_backend
             services.AddSingleton<MongoRepository<Folder>>();
             services.AddSingleton<MongoRepository<File>>();
             #endregion
+
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -98,7 +101,7 @@ namespace not_a_google_drive_backend
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseCors(builder => builder.AllowAnyOrigin());
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
