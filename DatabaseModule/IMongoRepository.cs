@@ -63,5 +63,7 @@ namespace DatabaseModule
 
         void UpdateOne<IItem>(String id, String field, IItem m);
 
+        Task UpdateOneAsync<IItem>(String id, String field, IItem m);
+
     }
 }
