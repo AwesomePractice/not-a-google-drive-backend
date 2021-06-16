@@ -10,10 +10,22 @@ namespace DatabaseModule.Entities
     [BsonCollection("folders")]
     public class Folder : Document
     {
+
+        public Folder(string name, ObjectId ownerId, ObjectId[] children)
+        {
+            Name = name;
+            OwnerId = ownerId;
+            Children = children;
+        }
+
+        public Folder()
+        {
+        }
+
         public string Name;
 
         public ObjectId OwnerId;
 
-        public Folder[] Children;
+        public ObjectId[] Children;
     }
 }

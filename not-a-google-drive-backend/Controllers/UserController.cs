@@ -59,11 +59,11 @@ namespace not_a_google_drive_backend.Controllers
 
             await _usersRepository.InsertOneAsync(newUser);
 
-            await _foldersRepository.InsertOneAsync(new DatabaseModule.Entities.Folder()
+            await _foldersRepository.InsertOneAsync(new Folder()
             {
                 Name = "root",
                 OwnerId = newUser.Id,
-                Children = Array.Empty<Folder>()
+                Children = Array.Empty<ObjectId>()
             }) ;
 
             return Ok("User was added");
