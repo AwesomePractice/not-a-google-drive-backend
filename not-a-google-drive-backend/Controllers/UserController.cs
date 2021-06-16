@@ -30,7 +30,7 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<Folder> _foldersRepository;
         private readonly IMongoRepository<File> _filesRepository;
 
-        private readonly FolderManager _folderManager;
+        private readonly FileFolderManager _folderManager;
 
         public UserController(IConfiguration configuration,
             MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep,
@@ -41,7 +41,7 @@ namespace not_a_google_drive_backend.Controllers
             _usersRepository = userRep;
             _foldersRepository = folderRep;
             _filesRepository = fileRep;
-            _folderManager = new FolderManager();
+            _folderManager = new FileFolderManager();
         }
 
         [HttpPost("SignUp")]
@@ -144,7 +144,7 @@ namespace not_a_google_drive_backend.Controllers
                 new UserFilesInfo()
                 {
                     OwnerId = userId,
-                    RootFolder = FolderManager.CombineFilesAndFolders(folders, files)
+                    RootFolder = FileFolderManager.CombineFilesAndFolders(folders, files)
                 }   
             };
 

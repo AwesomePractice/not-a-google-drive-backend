@@ -1,15 +1,17 @@
 
 using DatabaseModule;
 using DatabaseModule.Entities;
+using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Response;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace not_a_google_drive_backend.Tools
 {
-    public class FolderManager
+    public class FileFolderManager
     {
         public static UserFilesInfoFolder CombineFilesAndFolders(List<Folder> folders, IEnumerable<File> files)
         {
@@ -46,6 +48,16 @@ namespace not_a_google_drive_backend.Tools
         {
             var folder = await foldersRepository.FindByIdAsync(folderId.ToString());
             return !(folder == null || folder.OwnerId != userId);
+        }
+
+        internal static string GetFileId(File file, string folderId)
+        {
+            return folderId.ToString() + "_" + file.Id.ToString();
+        }
+
+        internal static bool CanAccessFile(ObjectId userId, File file)
+        {
+            return file.OwnerId == userId;
         }
     }
 }

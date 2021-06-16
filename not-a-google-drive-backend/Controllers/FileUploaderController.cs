@@ -50,7 +50,7 @@ namespace not_a_google_drive_backend.Controllers
             var file = files.First();
 
             ObjectId _folderId = new ObjectId(folderId);
-            bool available = await FolderManager.CheckIsFolderAvailableToUser(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
+            bool available = await FileFolderManager.CheckIsFolderAvailableToUser(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
             if (!available) return BadRequest("Folder not available or doesn't exist");
 
             var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
@@ -59,15 +59,6 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("You have not linked any cloud storage");
             }
 
-            var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId, 
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.UploadFile(file, folderId.ToString() + "_" + file.FileName);
-
-            if (!result)
-            {
-                return BadRequest("Error while uploading your file!");
-            }
 
             var newFile = new DatabaseModule.Entities.File()
             {
@@ -81,6 +72,18 @@ namespace not_a_google_drive_backend.Controllers
                 Favourite = favourite
             };
             await _filesRepository.InsertOneAsync(newFile);
+
+
+
+            var serviceConfig = user.GoogleBucketConfigData;
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
+                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            var result = googleBucketUploader.UploadFile(file, FileFolderManager.GetFileId(newFile, folderId));
+
+            if (!result)
+            {
+                return BadRequest("Error while uploading your file!");
+            }
 
 
             return Ok(JsonSerializer.Serialize(
@@ -98,8 +101,11 @@ namespace not_a_google_drive_backend.Controllers
         [HttpGet("DownloadFile")]
         public async Task<ActionResult> DownloadFileAsync(string fileId)
         {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
 
-            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+
+
+            var user = await _usersRepository.FindOneAsync(x => x.Id == userId);
             if (user.GoogleBucketConfigData == null)
             {
                 return BadRequest("You have not linked any cloud storage");
@@ -118,6 +124,28 @@ namespace not_a_google_drive_backend.Controllers
         }
 
         [Authorize]
+        [HttpPost("FileInfo")]
+        public async Task<ActionResult> GetFileInfo(FileIdRequest fileIdRequest)
+        {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
+            var file = await _filesRepository.FindByIdAsync(fileIdRequest.FileId);
+
+            if(!FileFolderManager.CanAccessFile(userId, file)) {
+                return BadRequest("You don't have access to file or it doesn't exist");
+            }
+
+            return Ok(JsonSerializer.Serialize(
+                new UserFilesInfoFile(file),
+                new JsonSerializerOptions()
+                {
+                    Converters =
+                    {
+                        new UserFilesInfoFileSerializer()
+                    }
+                }));
+        }
+
+            [Authorize]
         [HttpGet("DeleteFile")]
         public async Task<ActionResult> DeleteFileAsync(string fileId)
         {
