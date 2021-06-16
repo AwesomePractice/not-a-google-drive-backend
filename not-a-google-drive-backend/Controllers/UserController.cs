@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -27,6 +29,8 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<Folder> _foldersRepository;
         private readonly IMongoRepository<File> _filesRepository;
 
+        private readonly FolderManager _folderManager;
+
         public UserController(IConfiguration configuration, MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep, ILogger<UserController> logger)
         {
             _configuration = configuration;
@@ -34,6 +38,7 @@ namespace not_a_google_drive_backend.Controllers
             _usersRepository = userRep;
             _foldersRepository = folderRep;
             _filesRepository = fileRep;
+            _folderManager = new FolderManager();
         }
 
         [HttpPost("SignUp")]
@@ -108,13 +113,21 @@ namespace not_a_google_drive_backend.Controllers
             var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
 
 
-            UserFilesInfo[] response = folders.Select(folder => new UserFilesInfo()
+            List<UserFilesInfo> response = folders.Select(folder => new UserFilesInfo()
             {
                 OwnerId = userId,
-                RootFolder = UserFilesInfo.CombineFilesAndFolders(folder, files)
-            }).ToArray();
+                RootFolder = FolderManager.CombineFilesAndFolders(folder, files)
+            }).ToList();
 
-            return Ok(response);
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                Converters =
+                {
+                    new UserFilesInfoSerializer()
+                }
+            };
+
+            return Ok(JsonSerializer.Serialize<List<UserFilesInfo>>(response, options));
         }
 
         //[HttpGet("GetConnectionDBString")]
