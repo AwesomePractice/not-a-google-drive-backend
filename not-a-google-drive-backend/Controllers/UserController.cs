@@ -159,6 +159,15 @@ namespace not_a_google_drive_backend.Controllers
             return Ok(JsonSerializer.Serialize<List<UserFilesInfo>>(response, options));
         }
 
+        [HttpPost("UserInfo")]
+        public async Task<ActionResult<String>> UserInfo(ObjectIdRequest request)
+        {
+            var user = await _usersRepository.FindByIdAsync(request.Id);
+            var userInfo = new UserInfo(user);
+
+            return Ok(JsonSerializer.Serialize(userInfo));
+        }
+
         //[HttpGet("GetConnectionDBString")]
         //public async Task<ActionResult<List<User>>> GetConDBString()
         //{

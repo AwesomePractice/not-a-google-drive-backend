@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace not_a_google_drive_backend.DTO.Request
 {
-    public class FileIdRequest
+    public class ObjectIdRequest
     {
-        public string FileId { get; set; }
+        public string Id { get; set; }
     }
 }
