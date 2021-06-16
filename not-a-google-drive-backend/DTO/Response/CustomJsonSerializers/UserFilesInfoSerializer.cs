@@ -52,6 +52,7 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
         public override void Write(Utf8JsonWriter writer, UserFilesInfoFolder value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
+            writer.WriteString("id", value.Id.ToString());
             writer.WriteString("name", value.Name);
             writer.WritePropertyName("children");
             writer.WriteStartArray();

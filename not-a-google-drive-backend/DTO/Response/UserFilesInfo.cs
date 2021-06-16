@@ -24,9 +24,12 @@ namespace not_a_google_drive_backend.DTO.Response
             Name = folder.Name;
             Files = Array.Empty<UserFilesInfoFile>();
             Children = Array.Empty<UserFilesInfoFolder>();
+            Id = folder.Id;
         }
 
         public string Name;
+
+        public ObjectId Id;
 
         public UserFilesInfoFile[] Files;
 

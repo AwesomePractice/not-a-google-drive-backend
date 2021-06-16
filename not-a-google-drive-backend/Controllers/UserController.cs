@@ -48,7 +48,7 @@ namespace not_a_google_drive_backend.Controllers
             {
                 return BadRequest("Password is not strong enough");
             }
-            if(await _usersRepository.FindOneAsync(x => x.Login == user.Login) != null)
+            if (await _usersRepository.FindOneAsync(x => x.Login == user.Login) != null)
             {
                 return BadRequest("Login is already used");
             }
@@ -71,8 +71,8 @@ namespace not_a_google_drive_backend.Controllers
             {
                 Name = "root",
                 OwnerId = newUser.Id,
-                Children = Array.Empty<ObjectId>()
-            }) ;
+                ParentId = null
+            });
 
             return Ok("User was added");
         }
@@ -81,12 +81,12 @@ namespace not_a_google_drive_backend.Controllers
         public async Task<ActionResult<object>> SignInAsync(Credentials cred)
         {
             var user = await _usersRepository.FindOneAsync(x => x.Login == cred.Login);
-            if(user == null)
+            if (user == null)
             {
                 return BadRequest("Login does not exist!");
             }
             var result = AuthenticationManager.GenerateJWT(cred, user.PasswordHash, user.PasswordSalt, user.Id);
-            if(result == null)
+            if (result == null)
             {
                 return BadRequest("Password is incorrect!");
             }
@@ -97,27 +97,31 @@ namespace not_a_google_drive_backend.Controllers
         [HttpGet("GetMyUsername")]
         public async Task<ActionResult<string>> GetUsername()
         {
-          
+
             return Ok(User.Identity.Name);
         }
 
         [Authorize]
         [HttpGet("FilesInfo")]
-        public async Task<ActionResult<UserFilesInfo[]>> GetFilesInfo()
+        public async Task<ActionResult<String>> GetFilesInfo()
         {
             ObjectId userId = new ObjectId(User.Claims.First(claim => claim.Type == "UserId").Value);
 
+            // Currently supports only own folders
             var folders = _foldersRepository.FilterBy(folder => folder.OwnerId == userId).ToList();
             var folderIds = folders.Select(folder => folder.Id);
 
             var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
 
 
-            List<UserFilesInfo> response = folders.Select(folder => new UserFilesInfo()
+            List<UserFilesInfo> response = new List<UserFilesInfo>
             {
-                OwnerId = userId,
-                RootFolder = FolderManager.CombineFilesAndFolders(folder, files)
-            }).ToList();
+                new UserFilesInfo()
+                {
+                    OwnerId = userId,
+                    RootFolder = FolderManager.CombineFilesAndFolders(folders, files)
+                }   
+            };
 
             JsonSerializerOptions options = new JsonSerializerOptions
             {

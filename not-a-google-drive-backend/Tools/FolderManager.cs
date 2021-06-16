@@ -6,10 +6,11 @@ using System.Linq;
 
 public class FolderManager
 {
-    public static UserFilesInfoFolder CombineFilesAndFolders(Folder folder, IEnumerable<File> files)
+    public static UserFilesInfoFolder CombineFilesAndFolders(List<Folder> folders, IEnumerable<File> files)
     {
-        List<Folder> stack = new List<Folder> { folder };
-        List<UserFilesInfoFolder> stackDto = new List<UserFilesInfoFolder> { new UserFilesInfoFolder(folder) };
+        var rootFolder = folders.First(f => f.ParentId == null);
+        List<Folder> stack = new List<Folder> { rootFolder };
+        List<UserFilesInfoFolder> stackDto = new List<UserFilesInfoFolder> { new UserFilesInfoFolder(rootFolder) };
         UserFilesInfoFolder result = stackDto.First();
         while (stack.Count > 0)
         {
@@ -18,14 +19,18 @@ public class FolderManager
             stack.RemoveAt(0);
             stackDto.RemoveAt(0);
 
-            fDto.Children = f.Children.Select(child => new UserFilesInfoFolder(child)).ToArray();
+            var childrenFolders = folders.Where(folder => folder.ParentId == f.Id);
+
+            fDto.Children = childrenFolders
+                .Select(folder => new UserFilesInfoFolder(folder))
+                .ToArray();
             fDto.Files = files
                 .Where(file => file.FolderId == f.Id)
                 .Select(
                     _file => new UserFilesInfoFile(_file)
                 ).ToArray();
 
-            stack.AddRange(f.Children);
+            stack.AddRange(childrenFolders);
             stackDto.AddRange(fDto.Children);
         }
         return result;

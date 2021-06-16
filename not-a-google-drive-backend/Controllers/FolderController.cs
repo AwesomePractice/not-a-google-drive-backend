@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
+using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using not_a_google_drive_backend.Models;
 using not_a_google_drive_backend.Tools;
 using System;
@@ -36,32 +37,33 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpPost("CreateFolder")]
-        public async Task<ActionResult<String>> CreateFolder(ObjectId parentId, string name)
+        public async Task<ActionResult<String>> CreateFolder(CreateFolder createFolder)
         {
-            ObjectId id = new ObjectId(User.FindFirst("id").Value);
+            ObjectId parentId = new ObjectId(createFolder.ParentId);
+            ObjectId userId = new ObjectId(User.Claims.First(claim => claim.Type == "UserId").Value);
 
-            var parent = await _foldersRepository.FindOneAsync(folder => folder.Id == parentId && folder.OwnerId == id);
-            if(parent == null)
+            var parent = await _foldersRepository.FindOneAsync(folder => folder.Id == parentId && folder.OwnerId == userId);
+            if (parent == null)
             {
                 return Ok("Error: There's no such parent");
             }
-            var folderWithThisName = await _foldersRepository.FindOneAsync(folder => 
-                parent.Children.Contains(folder.Id) && folder.Name == name);
-            if(folderWithThisName != null)
+
+            var siblings = await _foldersRepository.FilterByAsync(folder => folder.ParentId == parentId && folder.OwnerId == userId);
+            if(siblings.Any(f => f.Name == createFolder.Name))
             {
                 return Ok("Error: There's folder with such name already");
             }
-            Folder folder = new Folder(name, parent.OwnerId, Array.Empty<ObjectId>());
+            Folder folder = new Folder(createFolder.Name, userId, parentId);
             await _foldersRepository.InsertOneAsync(folder);
 
             var options = new JsonSerializerOptions()
             {
                 Converters =
                 {
-                    new UserInfoFolderSerializer()
+                    new UserFilesInfoSerializer()
                 }
             };
-            return JsonSerializer.Serialize(folder, options);
+            return Ok(JsonSerializer.Serialize(folder, options));
         }
 
     }
