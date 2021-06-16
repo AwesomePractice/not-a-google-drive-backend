@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
+using Microsoft.AspNetCore.Http;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -93,13 +94,13 @@ namespace not_a_google_drive_backend.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "admin")]
-        [HttpGet("GetMyUsername")]
-        public async Task<ActionResult<string>> GetUsername()
-        {
+        //[Authorize(Roles = "admin")]
+        //[HttpGet("GetMyUsername")]
+        //public async Task<ActionResult<string>> GetUsername()
+        //{
 
-            return Ok(User.Identity.Name);
-        }
+        //    return Ok(User.Identity.Name);
+        //}
 
         [Authorize]
         [HttpGet("FilesInfo")]
@@ -113,6 +114,10 @@ namespace not_a_google_drive_backend.Controllers
 
             var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
 
+            if (folders.Count == 0)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new Error() { Reason = "User doesn't have any folder (even required root)" });
+            }
 
             List<UserFilesInfo> response = new List<UserFilesInfo>
             {
