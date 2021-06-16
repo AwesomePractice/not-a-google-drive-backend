@@ -7,11 +7,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
+using not_a_google_drive_backend.DTO.Response;
+using not_a_google_drive_backend.Models;
 using not_a_google_drive_backend.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
+using Microsoft.AspNetCore.Http;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -24,15 +29,20 @@ namespace not_a_google_drive_backend.Controllers
 
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
+        private readonly IMongoRepository<File> _filesRepository;
 
-        public UserController(IConfiguration configuration, 
-            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, 
+        private readonly FolderManager _folderManager;
+
+        public UserController(IConfiguration configuration,
+            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<Folder> fileRep,
             ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
             _usersRepository = userRep;
             _foldersRepository = folderRep;
+            _filesRepository = fileRep;
+            _folderManager = new FolderManager();
         }
 
         [HttpPost("SignUp")]
@@ -42,7 +52,7 @@ namespace not_a_google_drive_backend.Controllers
             {
                 return BadRequest("Password is not strong enough");
             }
-            if(await _usersRepository.FindOneAsync(x => x.Login == user.Login) != null)
+            if (await _usersRepository.FindOneAsync(x => x.Login == user.Login) != null)
             {
                 return BadRequest("Login is already used");
             }
@@ -61,12 +71,12 @@ namespace not_a_google_drive_backend.Controllers
 
             await _usersRepository.InsertOneAsync(newUser);
 
-            await _foldersRepository.InsertOneAsync(new DatabaseModule.Entities.Folder()
+            await _foldersRepository.InsertOneAsync(new Folder()
             {
                 Name = "root",
                 OwnerId = newUser.Id,
-                Children = Array.Empty<Folder>()
-            }) ;
+                ParentId = null
+            });
 
             return Ok("User was added");
         }
@@ -75,7 +85,7 @@ namespace not_a_google_drive_backend.Controllers
         public async Task<ActionResult<object>> SignInAsync(Credentials cred)
         {
             var user = await _usersRepository.FindOneAsync(x => x.Login == cred.Login);
-            if(user == null)
+            if (user == null)
             {
                 return BadRequest("Login does not exist!");
             }
@@ -111,12 +121,49 @@ namespace not_a_google_drive_backend.Controllers
         }
 
 
-        [Authorize(Roles = "admin")]
-        [HttpGet("GetMyUsername")]
-        public async Task<ActionResult<string>> GetUsername()
+        //[Authorize(Roles = "admin")]
+        //[HttpGet("GetMyUsername")]
+        //public async Task<ActionResult<string>> GetUsername()
+        //{
+
+        //    return Ok(User.Identity.Name);
+        //}
+
+        [Authorize]
+        [HttpGet("FilesInfo")]
+        public async Task<ActionResult<String>> GetFilesInfo()
         {
-          
-            return Ok(User.Identity.Name);
+            ObjectId userId = new ObjectId(User.FindFirst("id").Value);
+
+            // Currently supports only own folders
+            var folders = _foldersRepository.FilterBy(folder => folder.OwnerId == userId).ToList();
+            var folderIds = folders.Select(folder => folder.Id);
+
+            var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
+
+            if (folders.Count == 0)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new Error() { Reason = "User doesn't have any folder (even required root)" });
+            }
+
+            List<UserFilesInfo> response = new List<UserFilesInfo>
+            {
+                new UserFilesInfo()
+                {
+                    OwnerId = userId,
+                    RootFolder = FolderManager.CombineFilesAndFolders(folders, files)
+                }   
+            };
+
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                Converters =
+                {
+                    new UserFilesInfoSerializer()
+                }
+            };
+
+            return Ok(JsonSerializer.Serialize<List<UserFilesInfo>>(response, options));
         }
 
         //[HttpGet("GetConnectionDBString")]

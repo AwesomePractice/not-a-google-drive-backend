@@ -15,6 +15,8 @@ namespace DatabaseModule
 
         IEnumerable<TDocument> FilterBy(
             Expression<Func<TDocument, bool>> filterExpression);
+        Task<IEnumerable<TDocument>> FilterByAsync(
+            Expression<Func<TDocument, bool>> filterExpression);
 
         IEnumerable<TDocument> FilterByLimited(Expression<Func<TDocument, bool>> filterExpression, int limit);
 
