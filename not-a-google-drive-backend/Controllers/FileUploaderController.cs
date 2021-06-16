@@ -53,11 +53,11 @@ namespace not_a_google_drive_backend.Controllers
             bool available = await FileFolderManager.CheckIsFolderAvailableToUser(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
             if (!available) return BadRequest("Folder not available or doesn't exist");
 
-            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            if(user.GoogleBucketConfigData == null)
-            {
-                return BadRequest("You have not linked any cloud storage");
-            }
+            //var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+            //if(user.GoogleBucketConfigData == null)
+            //{
+            //    return BadRequest("You have not linked any cloud storage");
+            //}
 
 
             var newFile = new DatabaseModule.Entities.File()
@@ -75,15 +75,15 @@ namespace not_a_google_drive_backend.Controllers
 
 
 
-            var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.UploadFile(file, FileFolderManager.GetFileId(newFile, folderId));
+            //var serviceConfig = user.GoogleBucketConfigData;
+            //var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
+            //    serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            //var result = googleBucketUploader.UploadFile(file, FileFolderManager.GetFileId(newFile, folderId));
 
-            if (!result)
-            {
-                return BadRequest("Error while uploading your file!");
-            }
+            //if (!result)
+            //{
+            //    return BadRequest("Error while uploading your file!");
+            //}
 
 
             return Ok(JsonSerializer.Serialize(
