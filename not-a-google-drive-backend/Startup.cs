@@ -32,11 +32,6 @@ namespace not_a_google_drive_backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAllOrigins",
-                    builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials());
-            });
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -85,7 +80,7 @@ namespace not_a_google_drive_backend
             #endregion
 
 
-            //services.AddCors();
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -106,7 +101,7 @@ namespace not_a_google_drive_backend
 
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.UseCors(builder => builder.AllowAnyOrigin());
+            app.UseCors(builder => builder.AllowAnyOrigin());
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

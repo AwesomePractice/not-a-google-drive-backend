@@ -147,10 +147,10 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpPost("DeleteFile")]
-        public async Task<ActionResult> DeleteFileAsync(ObjectIdRequest fileIdRequest)
+        public async Task<ActionResult> DeleteFileAsync(FileIdRequest fileIdRequest)
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
-            var file = await _filesRepository.FindByIdAsync(fileIdRequest.Id);
+            var file = await _filesRepository.FindByIdAsync(fileIdRequest.FileId);
 
             if (!FileFolderManager.CanAccessFile(userId, file))
             {
@@ -174,7 +174,7 @@ namespace not_a_google_drive_backend.Controllers
             //    return BadRequest("Error while deleting your file");
             //}
 
-            await _filesRepository.DeleteByIdAsync(fileIdRequest.Id);
+            await _filesRepository.DeleteByIdAsync(fileIdRequest.FileId);
 
             return Ok();
         }
