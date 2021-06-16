@@ -65,8 +65,8 @@ namespace not_a_google_drive_backend.Controllers
                 LastName = user.LastName,
                 BirthDate = user.BirthDate.Date,
                 PasswordHash = PasswordManager.GeneratePasswordHash(user.Password, salt),
-                PasswordSalt = salt,
-                GoogleBucketConfigData = AuthenticationManager.GoogleBucketConfigData(await AuthenticationManager.GetGoogleBucketDefault())
+                PasswordSalt = salt
+                //GoogleBucketConfigData = AuthenticationManager.GoogleBucketConfigData(await AuthenticationManager.GetGoogleBucketDefault())
             };
 
             await _usersRepository.InsertOneAsync(newUser);
