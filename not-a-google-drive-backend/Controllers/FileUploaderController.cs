@@ -145,7 +145,7 @@ namespace not_a_google_drive_backend.Controllers
                 }));
         }
 
-            [Authorize]
+        [Authorize]
         [HttpGet("DeleteFile")]
         public async Task<ActionResult> DeleteFileAsync(string fileId)
         {
@@ -170,26 +170,51 @@ namespace not_a_google_drive_backend.Controllers
             return Ok("File was deleted");
         }
 
+        [Authorize]
+        [HttpPost("SwitchFavouriteFile")]
+        public async Task<ActionResult> SwitchFavouriteFile(FavouriteSwitch favouriteSwitch)
+        {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
+            var file = await _filesRepository.FindByIdAsync(favouriteSwitch.FileId);
 
-        //[Authorize]
-        //[HttpGet("GetAllBucketFiles")]
-        //public async Task<ActionResult<List<string>>> GetAllBucketFilesAsync()
-        //{
+            if (!FileFolderManager.CanAccessFile(userId, file))
+            {
+                return BadRequest("You don't have access to file or it doesn't exist");
+            }
 
-        //    var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-        //    if (user.GoogleBucketConfigData == null)
-        //    {
-        //        return BadRequest("You have not linked any cloud storage");
-        //    }
+            await _filesRepository.UpdateOneAsync(favouriteSwitch.FileId.ToString(), "Favourite", favouriteSwitch.IsFavourite);
+            file.Favourite = favouriteSwitch.IsFavourite;
+
+            return Ok(JsonSerializer.Serialize(
+            new UserFilesInfoFile(file),
+            new JsonSerializerOptions()
+            {
+                Converters =
+                {
+                        new UserFilesInfoFileSerializer()
+                }
+            }));
+        }
+
+            //[Authorize]
+            //[HttpGet("GetAllBucketFiles")]
+            //public async Task<ActionResult<List<string>>> GetAllBucketFilesAsync()
+            //{
+
+            //    var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+            //    if (user.GoogleBucketConfigData == null)
+            //    {
+            //        return BadRequest("You have not linked any cloud storage");
+            //    }
 
 
-        //    var serviceConfig = user.GoogleBucketConfigData;
-        //    var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-        //        serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
-        //    var result = googleBucketUploader.GetFilesList();
+            //    var serviceConfig = user.GoogleBucketConfigData;
+            //    var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
+            //        serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            //    var result = googleBucketUploader.GetFilesList();
 
-        //    return Ok(result);
-        //}
+            //    return Ok(result);
+            //}
 
-    }
+        }
 }
