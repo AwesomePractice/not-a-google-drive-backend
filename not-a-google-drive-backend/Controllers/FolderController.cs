@@ -9,8 +9,6 @@ using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
 using not_a_google_drive_backend.DTO.Response;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
-using not_a_google_drive_backend.Models;
-using not_a_google_drive_backend.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;

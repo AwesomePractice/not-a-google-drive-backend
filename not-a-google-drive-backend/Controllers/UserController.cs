@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
 using not_a_google_drive_backend.DTO.Response;
-using not_a_google_drive_backend.Models;
 using not_a_google_drive_backend.Tools;
 using System;
 using System.Collections.Generic;
@@ -34,7 +33,7 @@ namespace not_a_google_drive_backend.Controllers
         private readonly FolderManager _folderManager;
 
         public UserController(IConfiguration configuration,
-            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<Folder> fileRep,
+            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep,
             ILogger<UserController> logger)
         {
             _configuration = configuration;
