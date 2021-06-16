@@ -125,10 +125,10 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpPost("FileInfo")]
-        public async Task<ActionResult> GetFileInfo(FileIdRequest fileIdRequest)
+        public async Task<ActionResult> GetFileInfo(ObjectIdRequest fileIdRequest)
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
-            var file = await _filesRepository.FindByIdAsync(fileIdRequest.FileId);
+            var file = await _filesRepository.FindByIdAsync(fileIdRequest.Id);
 
             if(!FileFolderManager.CanAccessFile(userId, file)) {
                 return BadRequest("You don't have access to file or it doesn't exist");
