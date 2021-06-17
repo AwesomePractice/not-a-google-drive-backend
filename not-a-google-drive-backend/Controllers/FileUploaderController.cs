@@ -77,8 +77,7 @@ namespace not_a_google_drive_backend.Controllers
 
 
             var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.UploadFile(file, FileFolderManager.GetFileId(newFile, folderId));
 
             if (!result)
@@ -114,8 +113,7 @@ namespace not_a_google_drive_backend.Controllers
 
 
             var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.DownloadFile(fileId);
            
             string contentType;
@@ -159,8 +157,7 @@ namespace not_a_google_drive_backend.Controllers
 
 
             var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.DeleteFile(fileId);
 
             if (!result)
