@@ -165,7 +165,7 @@ namespace not_a_google_drive_backend.Controllers
 
             var serviceConfig = user.GoogleBucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.DeleteFile(fileId);
+            var result = googleBucketUploader.DeleteFile(request.Id);
 
             if (!result)
             {
