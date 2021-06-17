@@ -70,19 +70,6 @@ namespace not_a_google_drive_backend.Tools
             return new ObjectId(User.FindFirst("id").Value);
         }
 
-        internal static DatabaseModule.VO.GoogleBucketConfigData GoogleBucketConfigData(GoogleBucketConfigData data)
-        {
-            return new DatabaseModule.VO.GoogleBucketConfigData()
-            {
-                Id = ObjectId.GenerateNewId(),
-                ClientId = data.ClientId,
-                Secret = data.Secret,
-                Email = data.Email,
-                ProjectId = data.ProjectId,
-                SelectedBucket = data.SelectedBucket
-            };
-        }
-
         internal static async Task<GoogleBucketConfigData> GetGoogleBucketDefault()
         {
             string fileName = "google_bucket.json";

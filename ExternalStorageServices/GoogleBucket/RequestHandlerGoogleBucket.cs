@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
 using Google.Apis.Storage.v1;
 using Google.Apis.Storage.v1.Data;
 using Google.Cloud.Storage.V1;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,24 +25,28 @@ namespace ExternalStorageServices.GoogleBucket
         public string BucketToUpload { get; set; }
         public string ProjectName { get; set; }
 
-        public RequestHandlerGoogleBucket(string email, string projectName, string clientId, string secret, string bucketToUpload)
+
+        public RequestHandlerGoogleBucket(string configData, string bucketToUpload)
         {
-            var clientSecrets = new ClientSecrets();
-            clientSecrets.ClientId = clientId;
-            clientSecrets.ClientSecret = secret;
-            //there are different scopes, which you can find here https://cloud.google.com/storage/docs/authentication
             var scopes = new[] { @"https://www.googleapis.com/auth/devstorage.full_control" };
 
-            Cts = new CancellationTokenSource();
-            UserCredential = GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets, scopes, email, Cts.Token).Result;
-
-            StorageService = new StorageService();
 
             BucketToUpload = bucketToUpload;
-            ProjectName = projectName;
 
-            UserCredential.RefreshTokenAsync(Cts.Token);
+
+            var credential = GoogleCredential.FromJson(configData)
+                                      .CreateScoped(scopes)
+                                      .UnderlyingCredential as ServiceAccountCredential;
+
+
+            StorageService = new StorageService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Not a google drive",
+            });
         }
+
+        
 
         public List<string> GetAllBuckets()
         {
@@ -66,7 +72,7 @@ namespace ExternalStorageServices.GoogleBucket
                 var uploadRequest = new ObjectsResource.InsertMediaUpload(StorageService, newObject,
                 BucketToUpload, fileStream, file.ContentType);
                 
-                uploadRequest.OauthToken = UserCredential.Token.AccessToken;
+              
                 var res = uploadRequest.Upload();
             }
             catch (Exception ex)

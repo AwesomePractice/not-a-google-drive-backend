@@ -99,7 +99,7 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpPost("LinkGoogleBucket")]
-        public async Task<ActionResult<string>> LinkGoogleBucketAsync(DTO.Request.GoogleBucketConfigData data)
+        public async Task<ActionResult<string>> LinkGoogleBucketAsync(string selectedBucket, DTO.Request.GoogleBucketConfigData data)
         {
             var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
             if(user.GoogleBucketConfigData != null)
@@ -107,8 +107,12 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("Service is already linked!");
             }
 
-            _usersRepository.UpdateOne(User.FindFirst("id").Value, "GoogleBucketConfigData", 
-                AuthenticationManager.GoogleBucketConfigData(data)
+            _usersRepository.UpdateOne(User.FindFirst("id").Value, "GoogleBucketConfigData",
+                new DatabaseModule.VO.GoogleBucketConfigData()
+                {
+                    ConfigData = JsonSerializer.Serialize(data),
+                    SelectedBucket = selectedBucket
+                }
             );
             return Ok("You have linked google bucket to your account");
         }

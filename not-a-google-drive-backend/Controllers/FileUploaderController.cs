@@ -77,8 +77,7 @@ namespace not_a_google_drive_backend.Controllers
 
 
             var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.UploadFile(file, FileFolderManager.GetFileId(newFile, folderId));
 
             if (!result)
@@ -114,8 +113,7 @@ namespace not_a_google_drive_backend.Controllers
 
 
             var serviceConfig = user.GoogleBucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-                serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.DownloadFile(fileId);
            
             string contentType;
@@ -158,22 +156,21 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("You don't have access to file or it doesn't exist");
             }
 
-            //var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            //if (user.GoogleBucketConfigData == null)
-            //{
-            //    return BadRequest("You have not linked any cloud storage");
-            //}
+            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+            if (user.GoogleBucketConfigData == null)
+            {
+                return BadRequest("You have not linked any cloud storage");
+            }
 
 
-            //var serviceConfig = user.GoogleBucketConfigData;
-            //var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-            //    serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
-            //var result = googleBucketUploader.DeleteFile(fileId);
+            var serviceConfig = user.GoogleBucketConfigData;
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
+            var result = googleBucketUploader.DeleteFile(fileId);
 
-            //if (!result)
-            //{
-            //    return BadRequest("Error while deleting your file");
-            //}
+            if (!result)
+            {
+                return BadRequest("Error while deleting your file");
+            }
 
             await _filesRepository.DeleteByIdAsync(request.Id);
 
