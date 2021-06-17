@@ -8,7 +8,7 @@ namespace not_a_google_drive_backend.Tools
         public const string ISSUER = "MyAuthServer"; 
         public const string AUDIENCE = "MyAuthClient"; 
         const string KEY = "mysupersecret_secretkey!123"; 
-        public const int LIFETIME = 60; // token is valid 60 minutes
+        public const int LIFETIME = 1440; // token is valid 60 minutes
         public static SymmetricSecurityKey GetSymmetricSecurityKey()
         {
             return new SymmetricSecurityKey(Encoding.ASCII.GetBytes(KEY));
