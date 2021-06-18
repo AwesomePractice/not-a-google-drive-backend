@@ -141,11 +141,9 @@ namespace not_a_google_drive_backend.Controllers
             var serviceConfig = bucket.BucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.DownloadFile(fileId);
-           
-            string contentType;
-            new FileExtensionContentTypeProvider().TryGetContentType(fileId, out contentType);
+          
 
-            return File(result, contentType, fileId);
+            return File(result, file.FileType, fileId);
         }
 
         [Authorize]
