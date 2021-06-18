@@ -104,7 +104,6 @@ namespace ExternalStorageServices.GoogleBucket
             {
                 var downloadRequest = new ObjectsResource.GetRequest(StorageService,
                 BucketToUpload, fileId);
-                downloadRequest.OauthToken = UserCredential.Token.AccessToken;
                 var resultStatus = downloadRequest.DownloadWithStatus(memoryStream);
                 result = ReadToEnd(memoryStream);
 
@@ -136,7 +135,6 @@ namespace ExternalStorageServices.GoogleBucket
             {
                 var deleteRequest = new ObjectsResource.DeleteRequest(StorageService,
                 BucketToUpload, fileId);
-                deleteRequest.OauthToken = UserCredential.Token.AccessToken;
                 resultStatus = deleteRequest.Execute();
                 
             }
