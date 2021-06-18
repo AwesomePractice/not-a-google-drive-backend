@@ -22,6 +22,8 @@ namespace DatabaseModule.Entities
 
         public ObjectId FolderId;
 
+        public ObjectId BucketId;
+
         //public string EncryptionKey;
 
         //public int CompressionAlgorithm;

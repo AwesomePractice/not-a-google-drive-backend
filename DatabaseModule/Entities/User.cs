@@ -1,4 +1,5 @@
 ﻿using DatabaseModule.VO;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,9 @@ namespace DatabaseModule.Entities
 
         #region External storage services data
 
-        public GoogleBucketConfigData GoogleBucketConfigData { get; set; }
+        public List<ObjectId> Buckets { get; set; }
+
+        public Bucket CurrentBucket { get; set; }
 
         #endregion
 

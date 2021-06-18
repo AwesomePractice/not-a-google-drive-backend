@@ -204,5 +204,11 @@ namespace DatabaseModule
             UpdateDefinition<TDocument> update = Builders<TDocument>.Update.Set(field, m);
             return _collection.UpdateOneAsync(filter, update);
         }
+
+        public Task FindOneAndUpdateAsync(String id, UpdateDefinition<TDocument> update)
+        {
+            FilterDefinition<TDocument> filter = Builders<TDocument>.Filter.Where(x => x.Id == new ObjectId(id));
+            return Task.Run(() => _collection.FindOneAndUpdateAsync(filter, update));
+        }
     }
 }

@@ -65,5 +65,7 @@ namespace DatabaseModule
 
         Task UpdateOneAsync<IItem>(String id, String field, IItem m);
 
+        Task FindOneAndUpdateAsync(String id, UpdateDefinition<TDocument> update);
+
     }
 }
