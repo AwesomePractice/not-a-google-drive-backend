@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DatabaseModule;
+using DatabaseModule.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
@@ -70,12 +72,18 @@ namespace not_a_google_drive_backend.Tools
             return new ObjectId(User.FindFirst("id").Value);
         }
 
-        internal static async Task<GoogleBucketConfigData> GetGoogleBucketDefault()
+        internal static async Task<Bucket> GetGoogleBucketDefault(IMongoRepository<Bucket> bucketsRepository)
         {
-            string fileName = "google_bucket.json";
-            string jsonString = await File.ReadAllTextAsync(fileName);
-            GoogleBucketConfigData data = JsonSerializer.Deserialize<GoogleBucketConfigData>(jsonString);
-            return data;
+            try
+            {
+                var bucket = await bucketsRepository.FindOneAsync(bucket => bucket.OwnerId == null);
+                return bucket;
+            }
+            catch(Exception e)
+            {
+                throw new Exception("Default bucket is not defined");
+            }
+            
         }
     }
 }

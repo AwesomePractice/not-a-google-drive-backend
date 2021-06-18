@@ -45,13 +45,13 @@ namespace not_a_google_drive_backend.Controllers
             var parent = await _foldersRepository.FindOneAsync(folder => folder.Id == parentId && folder.OwnerId == userId);
             if (parent == null)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new Error() { Reason = "There's no such parent" });
+                return BadRequest("There's no such parent");
             }
 
             var siblings = await _foldersRepository.FilterByAsync(folder => folder.ParentId == parentId && folder.OwnerId == userId);
             if(siblings.Any(f => f.Name == createFolder.Name))
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new Error() { Reason = "There's folder with such name already" });
+                return BadRequest("There's folder with such name already");
             }
             Folder folder = new Folder(createFolder.Name, userId, parentId);
             await _foldersRepository.InsertOneAsync(folder);

@@ -30,14 +30,17 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
         private readonly IMongoRepository<DatabaseModule.Entities.File> _filesRepository;
+        private readonly IMongoRepository<DatabaseModule.Entities.Bucket> _bucketsRepository;
 
         public FileUploaderController(ILogger<FileUploaderController> logger,
-            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<DatabaseModule.Entities.File> fileRep)
+            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<DatabaseModule.Entities.File> fileRep,
+            MongoRepository<DatabaseModule.Entities.Bucket> bucketRep)
         {
             _logger = logger;
             _usersRepository = userRep;
             _foldersRepository = folderRep;
             _filesRepository = fileRep;
+            _bucketsRepository = bucketRep;
         }
 
         [Authorize]
@@ -55,7 +58,7 @@ namespace not_a_google_drive_backend.Controllers
 
 
             var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            if (user.GoogleBucketConfigData == null)
+            if (user.Buckets.Count() == 0)
             {
                 return BadRequest("You have not linked any cloud storage");
             }
@@ -70,15 +73,16 @@ namespace not_a_google_drive_backend.Controllers
                 FolderId = _folderId,
                 Compressed = compressed,
                 Encrypted = encrypted,
-                Favourite = favourite
+                Favourite = favourite,
+                BucketId = user.CurrentBucket.Id
             };
             await _filesRepository.InsertOneAsync(newFile);
 
 
 
-            var serviceConfig = user.GoogleBucketConfigData;
+            var serviceConfig = user.CurrentBucket.BucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.UploadFile(file, FileFolderManager.GetFileId(newFile, folderId));
+            var result = googleBucketUploader.UploadFile(file, newFile.Id.ToString());
 
             if (!result)
             {
@@ -103,16 +107,38 @@ namespace not_a_google_drive_backend.Controllers
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
 
-
-
-            var user = await _usersRepository.FindOneAsync(x => x.Id == userId);
-            if (user.GoogleBucketConfigData == null)
+            #region
+            DatabaseModule.Entities.File file;
+            try
             {
-                return BadRequest("You have not linked any cloud storage");
+                file = await _filesRepository.FindByIdAsync(fileId);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e.Message);
+                return BadRequest("File not found");
+            }
+            #endregion
+
+            if (!FileFolderManager.CanAccessFile(userId, file))
+            {
+                return BadRequest("User doesn't have access to file");
             }
 
+            #region Get file from db
+            DatabaseModule.Entities.Bucket bucket;
+            try
+            {
+                bucket = await _bucketsRepository.FindByIdAsync(file.BucketId.ToString());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return BadRequest("Bucket not found");
+            }
+            #endregion
 
-            var serviceConfig = user.GoogleBucketConfigData;
+            var serviceConfig = bucket.BucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.DownloadFile(fileId);
            
@@ -149,21 +175,40 @@ namespace not_a_google_drive_backend.Controllers
         public async Task<ActionResult> DeleteFileAsync(ObjectIdRequest request)
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
-            var file = await _filesRepository.FindByIdAsync(request.Id);
 
-            if (!FileFolderManager.CanAccessFile(userId, file))
+            #region Get file from db
+            DatabaseModule.Entities.File file;
+            try
             {
-                return BadRequest("You don't have access to file or it doesn't exist");
+                file = await _filesRepository.FindByIdAsync(request.Id);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return BadRequest("File not found");
+            }
+            #endregion
+
+            if (!FileFolderManager.CanDeleteFile(userId, file))
+            {
+                return BadRequest("You can't delete file or it doesn't exist");
             }
 
-            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            if (user.GoogleBucketConfigData == null)
+            #region Get bucket from db
+            DatabaseModule.Entities.Bucket bucket;
+            try
             {
-                return BadRequest("You have not linked any cloud storage");
+                bucket = await _bucketsRepository.FindByIdAsync(file.BucketId.ToString());
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return BadRequest("Bucket not found");
+            }
+            #endregion
 
 
-            var serviceConfig = user.GoogleBucketConfigData;
+            var serviceConfig = bucket.BucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
             var result = googleBucketUploader.DeleteFile(request.Id);
 
@@ -172,7 +217,17 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("Error while deleting your file");
             }
 
-            await _filesRepository.DeleteByIdAsync(request.Id);
+            #region Delete file from db
+            try
+            {
+                await _filesRepository.DeleteByIdAsync(request.Id);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return BadRequest("Deletion file from db failed");
+            }
+            #endregion
 
             return Ok();
         }
