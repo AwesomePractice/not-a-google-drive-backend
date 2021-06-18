@@ -16,7 +16,7 @@ namespace DatabaseModule.Entities
 
         #region External storage services data
 
-        public ObjectId[] Buckets { get; set; }
+        public List<ObjectId> Buckets { get; set; }
 
         public Bucket CurrentBucket { get; set; }
 

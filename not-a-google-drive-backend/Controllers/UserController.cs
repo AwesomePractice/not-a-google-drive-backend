@@ -30,13 +30,13 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
         private readonly IMongoRepository<File> _filesRepository;
-        private readonly IMongoRepository<Bucket> _bucketsRepository;
+        private readonly IMongoRepository<DatabaseModule.Entities.Bucket> _bucketsRepository;
 
         private readonly FileFolderManager _folderManager;
 
         public UserController(IConfiguration configuration,
             MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep, 
-            MongoRepository<Bucket> bucketRep, ILogger<UserController> logger)
+            MongoRepository<DatabaseModule.Entities.Bucket> bucketRep, ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
@@ -61,10 +61,12 @@ namespace not_a_google_drive_backend.Controllers
 
             var salt = PasswordManager.GenerateSalt_128();
 
-            var Buckets = new ObjectId[] { };
+            var Buckets = new List<ObjectId>();
+            DatabaseModule.Entities.Bucket defaultBucket;
             try
             {
-                var defaultBucket = await AuthenticationManager.GetGoogleBucketDefault(_bucketsRepository);
+                defaultBucket = await AuthenticationManager.GetGoogleBucketDefault(_bucketsRepository);
+                Buckets.Add(defaultBucket.Id);
             }
             catch(Exception e)
             {
@@ -79,7 +81,8 @@ namespace not_a_google_drive_backend.Controllers
                 BirthDate = user.BirthDate.Date,
                 PasswordHash = PasswordManager.GeneratePasswordHash(user.Password, salt),
                 PasswordSalt = salt,
-                Buckets = Buckets
+                Buckets = Buckets,
+                CurrentBucket = defaultBucket
                 //GoogleBucketConfigData = AuthenticationManager.GoogleBucketConfigData(await AuthenticationManager.GetGoogleBucketDefault())
             };
 
@@ -125,7 +128,7 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("Bucket with such name is already linked to this user");
             }
 
-            var newBucket = new Bucket()
+            var newBucket = new DatabaseModule.Entities.Bucket()
             {
                 Name = bucketName,
                 OwnerId = userId,

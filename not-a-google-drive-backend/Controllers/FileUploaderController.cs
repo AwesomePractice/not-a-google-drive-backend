@@ -30,11 +30,11 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
         private readonly IMongoRepository<DatabaseModule.Entities.File> _filesRepository;
-        private readonly IMongoRepository<Bucket> _bucketsRepository;
+        private readonly IMongoRepository<DatabaseModule.Entities.Bucket> _bucketsRepository;
 
         public FileUploaderController(ILogger<FileUploaderController> logger,
             MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<DatabaseModule.Entities.File> fileRep,
-            MongoRepository<Bucket> bucketRep)
+            MongoRepository<DatabaseModule.Entities.Bucket> bucketRep)
         {
             _logger = logger;
             _usersRepository = userRep;
@@ -73,7 +73,8 @@ namespace not_a_google_drive_backend.Controllers
                 FolderId = _folderId,
                 Compressed = compressed,
                 Encrypted = encrypted,
-                Favourite = favourite
+                Favourite = favourite,
+                BucketId = user.CurrentBucket.Id
             };
             await _filesRepository.InsertOneAsync(newFile);
 
