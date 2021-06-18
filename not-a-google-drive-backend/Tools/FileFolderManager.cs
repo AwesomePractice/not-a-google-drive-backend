@@ -50,14 +50,19 @@ namespace not_a_google_drive_backend.Tools
             return !(folder == null || folder.OwnerId != userId);
         }
 
-        internal static string GetFileId(File file, string folderId)
-        {
-            return folderId.ToString() + "_" + file.Id.ToString();
-        }
+        //internal static string GetFileId(File file, string folderId)
+        //{
+        //    return folderId.ToString() + "_" + file.Id.ToString();
+        //}
 
         internal static bool CanAccessFile(ObjectId userId, File file)
         {
             return file.OwnerId == userId;
+        }
+
+        internal static bool CanDeleteFile(ObjectId userId, File file)
+        {
+            throw new NotImplementedException();
         }
     }
 }

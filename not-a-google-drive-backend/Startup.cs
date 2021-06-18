@@ -101,6 +101,7 @@ namespace not_a_google_drive_backend
             services.AddSingleton<MongoRepository<User>>();
             services.AddSingleton<MongoRepository<Folder>>();
             services.AddSingleton<MongoRepository<File>>();
+            services.AddSingleton<MongoRepository<Bucket>>();
             #endregion
 
 

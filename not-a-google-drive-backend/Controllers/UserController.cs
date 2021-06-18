@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using Microsoft.AspNetCore.Http;
+using MongoDB.Driver;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -29,18 +30,20 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<User> _usersRepository;
         private readonly IMongoRepository<Folder> _foldersRepository;
         private readonly IMongoRepository<File> _filesRepository;
+        private readonly IMongoRepository<Bucket> _bucketsRepository;
 
         private readonly FileFolderManager _folderManager;
 
         public UserController(IConfiguration configuration,
-            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep,
-            ILogger<UserController> logger)
+            MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep, 
+            MongoRepository<Bucket> bucketRep, ILogger<UserController> logger)
         {
             _configuration = configuration;
             _logger = logger;
             _usersRepository = userRep;
             _foldersRepository = folderRep;
             _filesRepository = fileRep;
+            _bucketsRepository = bucketRep;
             _folderManager = new FileFolderManager();
         }
 
@@ -58,6 +61,16 @@ namespace not_a_google_drive_backend.Controllers
 
             var salt = PasswordManager.GenerateSalt_128();
 
+            var Buckets = new ObjectId[] { };
+            try
+            {
+                var defaultBucket = await AuthenticationManager.GetGoogleBucketDefault(_bucketsRepository);
+            }
+            catch(Exception e)
+            {
+                return Ok("User was added without linking default bucket");
+            }
+
             var newUser = new DatabaseModule.Entities.User()
             {
                 Login = user.Login,
@@ -65,7 +78,8 @@ namespace not_a_google_drive_backend.Controllers
                 LastName = user.LastName,
                 BirthDate = user.BirthDate.Date,
                 PasswordHash = PasswordManager.GeneratePasswordHash(user.Password, salt),
-                PasswordSalt = salt
+                PasswordSalt = salt,
+                Buckets = Buckets
                 //GoogleBucketConfigData = AuthenticationManager.GoogleBucketConfigData(await AuthenticationManager.GetGoogleBucketDefault())
             };
 
@@ -99,21 +113,34 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpPost("LinkGoogleBucket")]
-        public async Task<ActionResult<string>> LinkGoogleBucketAsync(string selectedBucket, DTO.Request.GoogleBucketConfigData data)
+        public async Task<ActionResult<string>> LinkGoogleBucketAsync(string selectedBucket, string bucketName, DTO.Request.GoogleBucketConfigData data)
         {
-            var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            if(user.GoogleBucketConfigData != null)
+            //var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+            var userId = AuthenticationManager.GetUserId(User);
+
+            var bucketWithTheSameName = await _bucketsRepository.FindOneAsync(bucket => bucket.Name == bucketName && (bucket.OwnerId == null || bucket.OwnerId == userId));
+
+            if(bucketWithTheSameName != null)
             {
-                return BadRequest("Service is already linked!");
+                return BadRequest("Bucket with such name is already linked to this user");
             }
 
-            _usersRepository.UpdateOne(User.FindFirst("id").Value, "GoogleBucketConfigData",
-                new DatabaseModule.VO.GoogleBucketConfigData()
+            var newBucket = new Bucket()
+            {
+                Name = bucketName,
+                OwnerId = userId,
+                BucketConfigData = new DatabaseModule.VO.GoogleBucketConfigData()
                 {
                     ConfigData = JsonSerializer.Serialize(data),
                     SelectedBucket = selectedBucket
                 }
-            );
+            };
+
+            await _bucketsRepository.InsertOneAsync(newBucket);
+            await _usersRepository.FindOneAndUpdateAsync(userId.ToString(),
+                Builders<User>.Update.Combine(
+                    Builders<User>.Update.Set("CurrentBucket", newBucket), 
+                    Builders<User>.Update.Push("Buckets", newBucket.Id)));
             return Ok("You have linked google bucket to your account");
         }
 
@@ -140,7 +167,7 @@ namespace not_a_google_drive_backend.Controllers
 
             if (folders.Count == 0)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new Error() { Reason = "User doesn't have any folder (even required root)" });
+                return BadRequest("User doesn't have any folder (even required root)");
             }
 
             List<UserFilesInfo> response = new List<UserFilesInfo>
