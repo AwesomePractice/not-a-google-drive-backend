@@ -10,7 +10,6 @@ using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,6 +17,8 @@ using not_a_google_drive_backend.Tools;
 using System.Text.Json;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using not_a_google_drive_backend.DTO.Response;
+using System.IO;
+using File = DatabaseModule.Entities.File;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -109,7 +110,7 @@ namespace not_a_google_drive_backend.Controllers
             var userId = Tools.AuthenticationManager.GetUserId(User);
 
             #region
-            DatabaseModule.Entities.File file;
+            File file;
             try
             {
                 file = await _filesRepository.FindByIdAsync(fileId);
@@ -141,7 +142,7 @@ namespace not_a_google_drive_backend.Controllers
 
             var serviceConfig = bucket.BucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.DownloadFile(fileId);
+            var result = googleBucketUploader.DownloadFile(file);
           
 
             return File(result, file.FileType, fileId);

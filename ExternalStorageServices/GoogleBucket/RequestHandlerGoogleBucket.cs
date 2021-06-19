@@ -15,6 +15,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DatabaseModule.Entities;
+using File = DatabaseModule.Entities.File;
 
 namespace ExternalStorageServices.GoogleBucket
 {
@@ -31,14 +33,11 @@ namespace ExternalStorageServices.GoogleBucket
         {
             var scopes = new[] { @"https://www.googleapis.com/auth/devstorage.full_control" };
 
-
             BucketToUpload = bucketToUpload;
-
 
             var credential = GoogleCredential.FromJson(configData)
                                       .CreateScoped(scopes)
                                       .UnderlyingCredential as ServiceAccountCredential;
-
 
             StorageService = new StorageService(new BaseClientService.Initializer()
             {
@@ -104,12 +103,12 @@ namespace ExternalStorageServices.GoogleBucket
             return new UploadResult(encryptionKey, iv);
         }
 
-        public byte[] DownloadFile(string fileId)
+        public byte[] DownloadFile(File fileInfo)
         {
             var newObject = new Google.Apis.Storage.v1.Data.Object()
             {
                 Bucket = BucketToUpload,
-                Name = fileId
+                Name = fileInfo.Id.ToString()
             };
 
             Stream memoryStream = new MemoryStream();
@@ -117,7 +116,7 @@ namespace ExternalStorageServices.GoogleBucket
             try
             {
                 var downloadRequest = new ObjectsResource.GetRequest(StorageService,
-                BucketToUpload, fileId);
+                BucketToUpload, fileInfo.Id.ToString());
                 var resultStatus = downloadRequest.DownloadWithStatus(memoryStream);
                 result = ReadToEnd(memoryStream);
 
