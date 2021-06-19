@@ -72,16 +72,16 @@ namespace ExternalStorageServices.GoogleBucket
             var fileBytes = ReadToEnd(fileStream);
 
             #region Encryption and compressing
+            if (compressing)
+            {
+                fileBytes = Compress(fileBytes);
+            }
             if (encryption)
             {
                 var actionData = GenerateKeyAndIV(FileActionsConstants.AESFlavour);
                 fileBytes = Encrypt(fileBytes, actionData.Item1, actionData.Item2);
                 encryptionKey = Convert.ToBase64String(actionData.Item1);
                 iv = Convert.ToBase64String(actionData.Item2);
-            }
-            if (compressing)
-            {
-                fileBytes = Compress(fileBytes);
             }
             #endregion
 
@@ -90,9 +90,10 @@ namespace ExternalStorageServices.GoogleBucket
             try
             {
                 var uploadRequest = new ObjectsResource.InsertMediaUpload(StorageService, newObject,
-                BucketToUpload, fileOutStream, file.ContentType);
+                BucketToUpload, fileOutStream, encryption || compressing ? "application/octet-stream" : file.ContentType);
                 
-              
+
+
                 var res = uploadRequest.Upload();
             }
             catch (Exception ex)
@@ -107,7 +108,7 @@ namespace ExternalStorageServices.GoogleBucket
                     fileStream.Dispose();
                 }
             }
-            return new UploadResult(encryptionKey, iv);
+            return new UploadResult(true, encryptionKey, iv);
         }
 
         public byte[] DownloadFile(File fileInfo)
@@ -128,13 +129,13 @@ namespace ExternalStorageServices.GoogleBucket
                 result = ReadToEnd(memoryStream);
 
                 #region Decryption and decompressing
+                if (fileInfo.Encrypted)
+                {
+                    result = Decrypt(result, Convert.FromBase64String(fileInfo.EncryptionKey), Convert.FromBase64String(fileInfo.IV)).Take((int)fileInfo.FileSize).ToArray();
+                }
                 if (fileInfo.Compressed)
                 {
                     result = Decompress(result);
-                }
-                if (fileInfo.Encrypted)
-                {
-                    result = Decrypt(result, Convert.FromBase64String(fileInfo.EncryptionKey), Convert.FromBase64String(fileInfo.IV));
                 }
                 #endregion
 
@@ -262,7 +263,7 @@ namespace ExternalStorageServices.GoogleBucket
 
         private byte[] GenerateRandomBytes(int length)
         {
-            byte[] result = new byte[length];
+            byte[] result = new byte[length / 8];
             RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
             rngCsp.GetBytes(result);
             return result;
@@ -272,8 +273,8 @@ namespace ExternalStorageServices.GoogleBucket
         {
             using (var aes = Aes.Create())
             {
-                aes.KeySize = 128;
-                aes.BlockSize = 128;
+                aes.KeySize = FileActionsConstants.AESFlavour;
+                aes.BlockSize = FileActionsConstants.AESFlavour;
                 aes.Padding = PaddingMode.Zeros;
 
                 aes.Key = key;
@@ -317,35 +318,57 @@ namespace ExternalStorageServices.GoogleBucket
         }
 
 
-        public byte[] Compress(byte[] source)
+        //public byte[] Compress(byte[] source)
+        //{
+        //    using (MemoryStream sourceStream = new MemoryStream(source))
+        //    {
+        //        using (MemoryStream targetStream = new MemoryStream())
+        //        {
+        //            using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
+        //            {
+        //                sourceStream.CopyTo(compressionStream);
+        //                return ReadToEnd(targetStream);
+        //            }
+        //        }
+        //    }
+        //}
+
+        //public byte[] Decompress(byte[] source)
+        //{
+        //    using (MemoryStream sourceStream = new MemoryStream(source))
+        //    {
+        //        using (MemoryStream targetStream = new MemoryStream())
+        //        {
+                    
+        //            using (GZipStream decompressionStream = new GZipStream(sourceStream, CompressionMode.Decompress))
+        //            {
+                        
+        //                decompressionStream.CopyTo(targetStream);
+        //                return targetStream.ToArray();
+        //            }
+        //        }
+        //    }
+        //}
+
+        public byte[] Compress(byte[] data)
         {
-            using (MemoryStream sourceStream = new MemoryStream(source))
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(output, CompressionLevel.Optimal))
             {
-                using (MemoryStream targetStream = new MemoryStream())
-                {
-                    using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
-                    {
-                        sourceStream.CopyTo(compressionStream);
-                        return ReadToEnd(targetStream);
-                    }
-                }
+                dstream.Write(data, 0, data.Length);
             }
+            return output.ToArray();
         }
 
-        public byte[] Decompress(byte[] source)
+        public byte[] Decompress(byte[] data)
         {
-            using (MemoryStream sourceStream = new MemoryStream(source))
+            MemoryStream input = new MemoryStream(data);
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(input, CompressionMode.Decompress))
             {
-                using (MemoryStream targetStream = new MemoryStream())
-                {
-                    
-                    using (GZipStream decompressionStream = new GZipStream(sourceStream, CompressionMode.Decompress))
-                    {
-                        decompressionStream.CopyTo(targetStream);
-                        return ReadToEnd(targetStream);
-                    }
-                }
+                dstream.CopyTo(output);
             }
+            return output.ToArray();
         }
     }
 }

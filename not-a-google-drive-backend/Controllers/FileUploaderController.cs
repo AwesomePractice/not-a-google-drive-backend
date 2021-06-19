@@ -145,7 +145,7 @@ namespace not_a_google_drive_backend.Controllers
             var result = googleBucketUploader.DownloadFile(file);
           
 
-            return File(result, file.FileType, fileId);
+            return File(result, file.FileType, file.FileName);
         }
 
         [Authorize]

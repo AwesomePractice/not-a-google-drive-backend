@@ -10,8 +10,9 @@ namespace ExternalStorageServices
     {
         public UploadResult() { }
 
-        public UploadResult(string key, string iv)
+        public UploadResult(bool status, string key, string iv)
         {
+            Success = status;
             EncryptionKey = key;
             IV = iv;
         }
