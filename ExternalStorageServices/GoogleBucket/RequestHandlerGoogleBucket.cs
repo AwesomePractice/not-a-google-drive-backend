@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DatabaseModule.Entities;
 using File = DatabaseModule.Entities.File;
+using System.IO.Compression;
 
 namespace ExternalStorageServices.GoogleBucket
 {
@@ -70,6 +71,7 @@ namespace ExternalStorageServices.GoogleBucket
             var fileStream = file.OpenReadStream();
             var fileBytes = ReadToEnd(fileStream);
 
+            #region Encryption and compressing
             if (encryption)
             {
                 var actionData = GenerateKeyAndIV(FileActionsConstants.AESFlavour);
@@ -77,6 +79,11 @@ namespace ExternalStorageServices.GoogleBucket
                 encryptionKey = Convert.ToBase64String(actionData.Item1);
                 iv = Convert.ToBase64String(actionData.Item2);
             }
+            if (compressing)
+            {
+                fileBytes = Compress(fileBytes);
+            }
+            #endregion
 
 
             Stream fileOutStream = new MemoryStream(fileBytes);
@@ -298,6 +305,40 @@ namespace ExternalStorageServices.GoogleBucket
                 cryptoStream.FlushFinalBlock();
 
                 return ms.ToArray();
+            }
+        }
+
+
+        public byte[] Compress(byte[] source)
+        {
+            using (MemoryStream sourceStream = new MemoryStream(source))
+            {
+                using (MemoryStream targetStream = new MemoryStream())
+                {
+                    using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
+                    {
+                        sourceStream.CopyTo(compressionStream);
+                        return ReadToEnd(targetStream);
+                    }
+                }
+            }
+        }
+
+        public void Decompress(string compressedFile, string targetFile)
+        {
+            // поток для чтения из сжатого файла
+            using (FileStream sourceStream = new FileStream(compressedFile, FileMode.OpenOrCreate))
+            {
+                // поток для записи восстановленного файла
+                using (FileStream targetStream = File.Create(targetFile))
+                {
+                    // поток разархивации
+                    using (GZipStream decompressionStream = new GZipStream(sourceStream, CompressionMode.Decompress))
+                    {
+                        decompressionStream.CopyTo(targetStream);
+                        Console.WriteLine("Восстановлен файл: {0}", targetFile);
+                    }
+                }
             }
         }
     }
