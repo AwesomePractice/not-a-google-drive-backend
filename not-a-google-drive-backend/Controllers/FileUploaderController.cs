@@ -18,7 +18,6 @@ using System.Text.Json;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using not_a_google_drive_backend.DTO.Response;
 using System.IO;
-using File = DatabaseModule.Entities.File;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -111,7 +110,7 @@ namespace not_a_google_drive_backend.Controllers
             var userId = Tools.AuthenticationManager.GetUserId(User);
 
             #region
-            File file;
+            DatabaseModule.Entities.File file;
             try
             {
                 file = await _filesRepository.FindByIdAsync(fileId);
