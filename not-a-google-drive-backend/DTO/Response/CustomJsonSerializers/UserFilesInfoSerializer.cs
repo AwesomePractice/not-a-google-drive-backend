@@ -53,6 +53,7 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
         {
             writer.WriteStartObject();
             writer.WriteString("id", value.Id.ToString());
+            writer.WriteBoolean("favourite", value.IsFavourite);
             writer.WriteString("name", value.Name);
             writer.WritePropertyName("children");
             writer.WriteStartArray();

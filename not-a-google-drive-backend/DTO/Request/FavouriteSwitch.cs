@@ -7,7 +7,7 @@ namespace not_a_google_drive_backend.DTO.Request
 {
     public class FavouriteSwitch
     {
-        public string FileId { get; set; }
+        public string Id { get; set; }
         public bool IsFavourite { get; set; }
     }
 }

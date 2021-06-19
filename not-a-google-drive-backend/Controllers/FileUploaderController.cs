@@ -235,14 +235,14 @@ namespace not_a_google_drive_backend.Controllers
         public async Task<ActionResult> SwitchFavouriteFile(FavouriteSwitch favouriteSwitch)
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
-            var file = await _filesRepository.FindByIdAsync(favouriteSwitch.FileId);
+            var file = await _filesRepository.FindByIdAsync(favouriteSwitch.Id);
 
-            if (!FileFolderManager.CanAccessFile(userId, file))
+            if (!FileFolderManager.CanDeleteFile(userId, file))
             {
                 return BadRequest("You don't have access to file or it doesn't exist");
             }
 
-            await _filesRepository.UpdateOneAsync(favouriteSwitch.FileId.ToString(), "Favourite", favouriteSwitch.IsFavourite);
+            await _filesRepository.UpdateOneAsync(favouriteSwitch.Id.ToString(), "Favourite", favouriteSwitch.IsFavourite);
             file.Favourite = favouriteSwitch.IsFavourite;
 
             return Ok(JsonSerializer.Serialize(
