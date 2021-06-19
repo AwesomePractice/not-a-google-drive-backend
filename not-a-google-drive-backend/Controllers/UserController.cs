@@ -158,13 +158,13 @@ namespace not_a_google_drive_backend.Controllers
         [HttpGet("FilesInfo")]
         public async Task<ActionResult<String>> GetFilesInfo()
         {
-            ObjectId userId = new ObjectId(User.FindFirst("id").Value);
+            var userId = AuthenticationManager.GetUserId(User);
 
             // Currently supports only own folders
             var folders = (await _foldersRepository.FilterByAsync(folder => folder.OwnerId == userId)).ToList();
             var folderIds = folders.Select(folder => folder.Id);
 
-            var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
+            var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId) || file.AllowedUsers.Contains(userId)).ToList();
 
             if (folders.Count == 0)
             {
@@ -176,7 +176,10 @@ namespace not_a_google_drive_backend.Controllers
                 new UserFilesInfo()
                 {
                     OwnerId = userId,
-                    RootFolder = FileFolderManager.CombineFilesAndFolders(folders, files)
+                    RootFolder = FileFolderManager.CombineFilesAndFolders(folders, 
+                        files.Where(file => file.OwnerId == userId)),
+                    AvailableFiles = files.Where(file => file.OwnerId != userId)
+                        .Select(f => new UserFilesInfoFile(f)).ToList()
                 }   
             };
 
@@ -215,5 +218,36 @@ namespace not_a_google_drive_backend.Controllers
             return Ok(users.Select(u => new UserInfo(u)));
         }
 
+
+        [Authorize]
+        [HttpPost("ShareFile")]
+        public async Task<ActionResult> ShareFileWithUser(ShareFileRequest request)
+        {
+            var userId = AuthenticationManager.GetUserId(User);
+
+            if(request.UserId == userId.ToString())
+            {
+                return BadRequest("You already have access to this file");
+            }
+
+            var file = await _filesRepository.FindByIdAsync(request.FileId);
+
+            if(file.AllowedUsers.Contains(new ObjectId(request.UserId)))
+            {
+                return BadRequest("User already has access to this file");
+            }
+
+            var updatedAllowedList = file.AllowedUsers;
+            updatedAllowedList.Add(new ObjectId(request.UserId));
+
+            if (!FileFolderManager.CanDeleteFile(userId, file))
+            {
+                return BadRequest("You don't have rights to share this file");
+            }
+
+            await _filesRepository.UpdateOneAsync(request.FileId, "AllowedUsers", updatedAllowedList);
+
+            return Ok();
+        }
     }
 }

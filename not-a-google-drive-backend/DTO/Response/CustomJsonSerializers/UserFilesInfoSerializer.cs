@@ -18,12 +18,19 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
         {
             ObjectIdSerializer objectIdSerializer = new ObjectIdSerializer();
             UserFilesInfoFolderSerializer folderSerializer = new UserFilesInfoFolderSerializer();
+            UserFilesInfoFileSerializer fileSerializer = new UserFilesInfoFileSerializer();
 
             writer.WriteStartObject();
             writer.WritePropertyName("owner_id");
             objectIdSerializer.Write(writer, value.OwnerId, new JsonSerializerOptions());
             writer.WritePropertyName("root_folder");
             folderSerializer.Write(writer, value.RootFolder, new JsonSerializerOptions());
+            writer.WritePropertyName("available_files");
+            writer.WriteStartArray();
+            foreach (var file in value.AvailableFiles) {
+                fileSerializer.Write(writer, file, new JsonSerializerOptions());
+            }
+            writer.WriteEndArray();
             writer.WriteEndObject();
         }
     }
