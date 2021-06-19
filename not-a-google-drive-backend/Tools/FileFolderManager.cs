@@ -62,7 +62,7 @@ namespace not_a_google_drive_backend.Tools
 
         internal static bool CanDeleteFile(ObjectId userId, File file)
         {
-            throw new NotImplementedException();
+            return file.OwnerId == userId;
         }
     }
 }

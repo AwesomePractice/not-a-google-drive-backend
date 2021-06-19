@@ -256,6 +256,26 @@ namespace not_a_google_drive_backend.Controllers
             }));
         }
 
+        [Authorize]
+        [HttpGet("AllFavouriteFiles")]
+        public async Task<ActionResult<List<FileInfo>>> AllFavouriteFiles()
+        {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
+
+            var files = await _filesRepository.FilterByAsync(file => file.OwnerId == userId && file.Favourite);
+
+            return Ok(JsonSerializer.Serialize(
+                files.Select(f => new UserFilesInfoFile(f)),
+                new JsonSerializerOptions()
+                    {
+                        Converters =
+                        {
+                            new UserFilesInfoFileSerializer()
+                        }
+                    }
+                ));
+        }
+
             //[Authorize]
             //[HttpGet("GetAllBucketFiles")]
             //public async Task<ActionResult<List<string>>> GetAllBucketFilesAsync()
