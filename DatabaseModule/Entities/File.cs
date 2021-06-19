@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +25,9 @@ namespace DatabaseModule.Entities
         public ObjectId BucketId { get; set; }
 
         public bool Encrypted { get; set; }
+
+        public List<ObjectId> AllowedUsers;
+
 
         public string EncryptionKey { get; set; }
         public string IV { get; set; }
