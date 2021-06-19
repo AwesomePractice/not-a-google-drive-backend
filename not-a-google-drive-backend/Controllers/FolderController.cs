@@ -79,13 +79,46 @@ namespace not_a_google_drive_backend.Controllers
         {
             var userId = AuthenticationManager.GetUserId(User);
 
-            if(!await FileFolderManager.CanDeleteFolder(userId, request.Id, _foldersRepository))
+            if(!await FileFolderManager.CanDeleteFolder(userId, new ObjectId(request.Id), _foldersRepository))
             {
                 return BadRequest("You don't have right to delete folder, or it doesn't exist");
             }
             var foldersTree = await FileFolderManager.GetFolderTree(new ObjectId(request.Id), _foldersRepository);
             await _filesRepository.DeleteManyAsync(file => foldersTree.Contains(file.FolderId));
             await _foldersRepository.DeleteManyAsync(folder => foldersTree.Contains(folder.Id));
+
+            return Ok();
+        }
+
+        
+        [Authorize]
+        [HttpGet("AllFavouriteFolders")]
+        public async Task<ActionResult<List<ObjectId>>> AllFavouriteFolders()
+        {
+            var userId = AuthenticationManager.GetUserId(User);
+
+            var favouriteFolders = (await _foldersRepository.FilterByAsync(folder => folder.OwnerId == userId && folder.Favourite))
+                .Select(folder => folder.Id);
+            return Ok(JsonSerializer.Serialize(favouriteFolders, new JsonSerializerOptions() { 
+                Converters =
+                {
+                    new ObjectIdSerializer()
+                }
+            }));
+        }
+
+        [Authorize]
+        [HttpPost("SwitchFavouriteFolder")]
+        public async Task<ActionResult> SwitchFavouriteFolder(FavouriteSwitch favouriteSwitch)
+        {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
+
+            if (!await FileFolderManager.CanDeleteFolder(userId, new ObjectId(favouriteSwitch.Id), _foldersRepository))
+            {
+                return BadRequest("You don't have access to folder or it doesn't exist");
+            }
+
+            await _foldersRepository.UpdateOneAsync(favouriteSwitch.Id, "Favourite", favouriteSwitch.IsFavourite);
 
             return Ok();
         }

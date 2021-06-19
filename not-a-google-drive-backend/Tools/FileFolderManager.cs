@@ -50,7 +50,7 @@ namespace not_a_google_drive_backend.Tools
             return !(folder == null || folder.OwnerId != userId);
         }
 
-        internal static async Task<bool> CanDeleteFolder(ObjectId userId, string folderId, IMongoRepository<Folder> foldersRepository)
+        internal static async Task<bool> CanDeleteFolder(ObjectId userId, ObjectId folderId, IMongoRepository<Folder> foldersRepository)
         {
             var folder = await foldersRepository.FindByIdAsync(folderId.ToString());
             return !(folder == null || folder.OwnerId != userId || folder.ParentId == null);

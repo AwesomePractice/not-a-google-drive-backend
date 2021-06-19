@@ -161,7 +161,7 @@ namespace not_a_google_drive_backend.Controllers
             ObjectId userId = new ObjectId(User.FindFirst("id").Value);
 
             // Currently supports only own folders
-            var folders = _foldersRepository.FilterBy(folder => folder.OwnerId == userId).ToList();
+            var folders = (await _foldersRepository.FilterByAsync(folder => folder.OwnerId == userId)).ToList();
             var folderIds = folders.Select(folder => folder.Id);
 
             var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
