@@ -43,17 +43,18 @@ namespace not_a_google_drive_backend.Tools
             return result;
         }
 
-        public static async Task<bool> CheckIsFolderAvailableToUser(ObjectId userId, ObjectId folderId,
+        internal static async Task<bool> CanAccessFolder(ObjectId userId, ObjectId folderId,
             IMongoRepository<Folder> foldersRepository)
         {
             var folder = await foldersRepository.FindByIdAsync(folderId.ToString());
             return !(folder == null || folder.OwnerId != userId);
         }
 
-        //internal static string GetFileId(File file, string folderId)
-        //{
-        //    return folderId.ToString() + "_" + file.Id.ToString();
-        //}
+        internal static async Task<bool> CanDeleteFolder(ObjectId userId, string folderId, IMongoRepository<Folder> foldersRepository)
+        {
+            var folder = await foldersRepository.FindByIdAsync(folderId.ToString());
+            return !(folder == null || folder.OwnerId != userId || folder.ParentId == null);
+        }
 
         internal static bool CanAccessFile(ObjectId userId, File file)
         {
@@ -63,6 +64,20 @@ namespace not_a_google_drive_backend.Tools
         internal static bool CanDeleteFile(ObjectId userId, File file)
         {
             return file.OwnerId == userId;
+        }
+
+        internal static async Task<List<ObjectId>> GetFolderTree(ObjectId rootFolderId, IMongoRepository<Folder> foldersRepository)
+        {
+            List<ObjectId> stack = new List<ObjectId> { rootFolderId };
+            List<ObjectId> usedList = new List<ObjectId> {};
+            while (stack.Count > 0)
+            {
+                var children = (await foldersRepository.FilterByAsync(folder => folder.ParentId != null && stack.Contains(folder.ParentId.Value)))
+                    .Select(folder => folder.Id);
+                usedList.AddRange(stack);
+                stack = new List<ObjectId>(children);
+            }
+            return usedList;
         }
     }
 }

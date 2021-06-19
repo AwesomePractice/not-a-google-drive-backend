@@ -11,11 +11,12 @@ namespace DatabaseModule.Entities
     public class Folder : Document
     {
 
-        public Folder(string name, ObjectId ownerId, ObjectId? parentId)
+        public Folder(string name, ObjectId ownerId, ObjectId? parentId, bool isFavourite)
         {
             Name = name;
             OwnerId = ownerId;
             ParentId = parentId;
+            Favourite = isFavourite;
         }
 
         public Folder()
@@ -27,5 +28,7 @@ namespace DatabaseModule.Entities
         public ObjectId OwnerId;
 
         public ObjectId? ParentId;
+
+        public bool Favourite;
     }
 }

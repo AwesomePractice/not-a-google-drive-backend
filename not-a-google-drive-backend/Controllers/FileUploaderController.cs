@@ -53,7 +53,7 @@ namespace not_a_google_drive_backend.Controllers
             var file = files.First();
 
             ObjectId _folderId = new ObjectId(folderId);
-            bool available = await FileFolderManager.CheckIsFolderAvailableToUser(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
+            bool available = await FileFolderManager.CanAccessFolder(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
             if (!available) return BadRequest("Folder not available or doesn't exist");
 
 

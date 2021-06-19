@@ -26,11 +26,14 @@ namespace not_a_google_drive_backend.DTO.Response
             Files = Array.Empty<UserFilesInfoFile>();
             Children = Array.Empty<UserFilesInfoFolder>();
             Id = folder.Id;
+            IsFavourite = folder.Favourite;
         }
 
         public string Name;
 
         public ObjectId Id;
+
+        public bool IsFavourite;
 
         public UserFilesInfoFile[] Files;
 

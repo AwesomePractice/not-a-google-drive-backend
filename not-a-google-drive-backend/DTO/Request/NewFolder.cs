@@ -10,5 +10,7 @@ namespace not_a_google_drive_backend.DTO.Request
         public string ParentId { get; set; }
 
         public string Name { get; set; }
+
+        public bool IsFavourite { get; set; }
     }
 }
