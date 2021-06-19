@@ -202,11 +202,20 @@ namespace not_a_google_drive_backend.Controllers
             return Ok(JsonSerializer.Serialize(userInfo));
         }
 
-        //[HttpGet("GetConnectionDBString")]
-        //public async Task<ActionResult<List<User>>> GetConDBString()
-        //{
-        //    return Ok(_configuration.GetValue<string>("DB_connection"));
-        //}
+        [Authorize]
+        [HttpGet("FindUser")]
+        public async Task<ActionResult<List<DTO.Response.UserInfo>>> FindUser(string query)
+        {
+            var list = new List<FilterDefinition<User>>();
+            list.Add(Builders<User>.Filter.Regex("FirstName", new BsonRegularExpression(query)));
+            list.Add(Builders<User>.Filter.Regex("LastName", new BsonRegularExpression(query)));
+            list.Add(Builders<User>.Filter.Regex("Login", new BsonRegularExpression(query)));
+            var filter = Builders<User>.Filter.Or(list);
+
+            var users = await _usersRepository.FindAsync(filter);
+
+            return Ok(users.Select(u => new UserInfo(u)));
+        }
 
     }
 }

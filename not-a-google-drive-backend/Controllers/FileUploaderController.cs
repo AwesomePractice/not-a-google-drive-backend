@@ -74,7 +74,8 @@ namespace not_a_google_drive_backend.Controllers
                 Compressed = compressed,
                 Encrypted = encrypted,
                 Favourite = favourite,
-                BucketId = user.CurrentBucket.Id
+                BucketId = user.CurrentBucket.Id,
+                AllowedUsers = new List<ObjectId>()
             };
             await _filesRepository.InsertOneAsync(newFile);
 
