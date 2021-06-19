@@ -10,7 +10,6 @@ using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,6 +17,8 @@ using not_a_google_drive_backend.Tools;
 using System.Text.Json;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using not_a_google_drive_backend.DTO.Response;
+using System.IO;
+using File = DatabaseModule.Entities.File;
 
 namespace not_a_google_drive_backend.Controllers
 {
@@ -63,9 +64,19 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("You have not linked any cloud storage");
             }
 
+            ObjectId fileId = ObjectId.GenerateNewId();
+            var serviceConfig = user.CurrentBucket.BucketConfigData;
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
+            var result = googleBucketUploader.UploadFile(file, fileId.ToString(), encrypted, compressed);
+
+            if (!result.Success)
+            {
+                return BadRequest("Error while uploading your file!");
+            }
 
             var newFile = new DatabaseModule.Entities.File()
             {
+                Id = fileId,
                 FileName = file.FileName,
                 FileType = file.ContentType,
                 FileSize = file.Length,
@@ -73,22 +84,13 @@ namespace not_a_google_drive_backend.Controllers
                 FolderId = _folderId,
                 Compressed = compressed,
                 Encrypted = encrypted,
+                EncryptionKey = result.EncryptionKey,
+                IV = result.IV,
                 Favourite = favourite,
                 BucketId = user.CurrentBucket.Id,
                 AllowedUsers = new List<ObjectId>()
             };
             await _filesRepository.InsertOneAsync(newFile);
-
-
-
-            var serviceConfig = user.CurrentBucket.BucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.UploadFile(file, newFile.Id.ToString());
-
-            if (!result)
-            {
-                return BadRequest("Error while uploading your file!");
-            }
 
 
             return Ok(JsonSerializer.Serialize(
@@ -109,7 +111,7 @@ namespace not_a_google_drive_backend.Controllers
             var userId = Tools.AuthenticationManager.GetUserId(User);
 
             #region
-            DatabaseModule.Entities.File file;
+            File file;
             try
             {
                 file = await _filesRepository.FindByIdAsync(fileId);
@@ -141,10 +143,10 @@ namespace not_a_google_drive_backend.Controllers
 
             var serviceConfig = bucket.BucketConfigData;
             var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.DownloadFile(fileId);
+            var result = googleBucketUploader.DownloadFile(file);
           
 
-            return File(result, file.FileType, fileId);
+            return File(result, file.FileType, file.FileName);
         }
 
         [Authorize]
