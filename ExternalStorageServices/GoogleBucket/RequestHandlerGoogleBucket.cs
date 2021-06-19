@@ -119,8 +119,10 @@ namespace ExternalStorageServices.GoogleBucket
                 BucketToUpload, fileInfo.Id.ToString());
                 var resultStatus = downloadRequest.DownloadWithStatus(memoryStream);
                 result = ReadToEnd(memoryStream);
-
-                // Actions with data here decrypting / decompressing
+                if (fileInfo.Encrypted)
+                {
+                    result = Decrypt(result, Convert.FromBase64String(fileInfo.EncryptionKey), Convert.FromBase64String(fileInfo.IV));
+                }
             }
             catch (Exception ex)
             {
