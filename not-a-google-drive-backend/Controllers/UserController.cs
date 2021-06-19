@@ -179,7 +179,7 @@ namespace not_a_google_drive_backend.Controllers
                     RootFolder = FileFolderManager.CombineFilesAndFolders(folders, 
                         files.Where(file => file.OwnerId == userId)),
                     AvailableFiles = files.Where(file => file.OwnerId != userId)
-                        .Select(f => new UserFilesInfoFile(f)).ToList()
+                        .Select(f => new FileInfoWithUser(f)).ToList()
                 }   
             };
 

@@ -17,7 +17,7 @@ namespace not_a_google_drive_backend.DTO.Response
         //[JsonConverter(typeof(UserFilesInfoFolder))]
         public UserFilesInfoFolder RootFolder;
 
-        public List<UserFilesInfoFile> AvailableFiles;
+        public List<FileInfoWithUser> AvailableFiles;
     }
 
     public class UserFilesInfoFolder
@@ -69,5 +69,15 @@ namespace not_a_google_drive_backend.DTO.Response
         public bool Compressed;
 
         public bool Favourite;
+    }
+
+    public class FileInfoWithUser : UserFilesInfoFile
+    {
+        public FileInfoWithUser(File file) : base(file)
+        {
+            OwnerId = file.OwnerId.ToString();
+        }
+
+        public string OwnerId;
     }
 }

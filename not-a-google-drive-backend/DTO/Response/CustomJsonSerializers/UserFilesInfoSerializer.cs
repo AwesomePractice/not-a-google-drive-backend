@@ -19,6 +19,7 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
             //ObjectIdSerializer objectIdSerializer = new ObjectIdSerializer();
             UserFilesInfoFolderSerializer folderSerializer = new UserFilesInfoFolderSerializer();
             UserFilesInfoFileSerializer fileSerializer = new UserFilesInfoFileSerializer();
+            FileInfoWithUserSerializer fileInfoWithUserSerializer = new FileInfoWithUserSerializer();
 
             writer.WriteStartObject();
             writer.WriteString("owner_id", value.OwnerId.ToString());
@@ -28,7 +29,7 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
             writer.WritePropertyName("available_files");
             writer.WriteStartArray();
             foreach (var file in value.AvailableFiles) {
-                fileSerializer.Write(writer, file, new JsonSerializerOptions());
+                fileInfoWithUserSerializer.Write(writer, file, new JsonSerializerOptions());
             }
             writer.WriteEndArray();
             writer.WriteEndObject();
