@@ -11,7 +11,9 @@ namespace DatabaseModule.Entities
     public class User : Document
     {
         public string Login { get; set; }
+
         public string FirstName { get; set; }
+
         public string LastName { get; set; }
 
         #region External storage services data
@@ -24,7 +26,9 @@ namespace DatabaseModule.Entities
 
         [BsonDateTimeOptions(DateOnly = true)]
         public DateTime BirthDate { get; set; }
+
         public string PasswordHash { get; set; }
+
         public string PasswordSalt { get; set; }
     }
 }

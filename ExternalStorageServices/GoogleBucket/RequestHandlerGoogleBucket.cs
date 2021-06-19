@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -56,21 +57,34 @@ namespace ExternalStorageServices.GoogleBucket
             return availableBuckets.Items.ToList().ConvertAll(x => new String(x.Name));
         }
 
-        public bool UploadFile(IFormFile file, string fileName)
+        public UploadResult UploadFile(IFormFile file, string fileName, bool encryption, bool compressing)
         {
             var newObject = new Google.Apis.Storage.v1.Data.Object()
             {
                 Bucket = BucketToUpload,
                 Name = fileName
             };
+            string encryptionKey = null, iv = null;
 
             // Actions with data here encrypting / compressing
 
             var fileStream = file.OpenReadStream();
+            var fileBytes = ReadToEnd(fileStream);
+
+            if (encryption)
+            {
+                var actionData = GenerateKeyAndIV(FileActionsConstants.AESFlavour);
+                fileBytes = Encrypt(fileBytes, actionData.Item1, actionData.Item2);
+                encryptionKey = Convert.ToBase64String(actionData.Item1);
+                iv = Convert.ToBase64String(actionData.Item2);
+            }
+
+
+            Stream fileOutStream = new MemoryStream(fileBytes);
             try
             {
                 var uploadRequest = new ObjectsResource.InsertMediaUpload(StorageService, newObject,
-                BucketToUpload, fileStream, file.ContentType);
+                BucketToUpload, fileOutStream, file.ContentType);
                 
               
                 var res = uploadRequest.Upload();
@@ -78,7 +92,7 @@ namespace ExternalStorageServices.GoogleBucket
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                return new UploadResult { Success = false};
             }
             finally
             {
@@ -87,7 +101,7 @@ namespace ExternalStorageServices.GoogleBucket
                     fileStream.Dispose();
                 }
             }
-            return true;
+            return new UploadResult(encryptionKey, iv);
         }
 
         public byte[] DownloadFile(string fileId)
@@ -219,6 +233,70 @@ namespace ExternalStorageServices.GoogleBucket
                 {
                     stream.Position = originalPosition;
                 }
+            }
+        }
+           
+        
+
+        private (byte[], byte[]) GenerateKeyAndIV(int length)
+        {
+            return (GenerateRandomBytes(length), GenerateRandomBytes(length));
+        }
+
+
+        private byte[] GenerateRandomBytes(int length)
+        {
+            byte[] result = new byte[length];
+            RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
+            rngCsp.GetBytes(result);
+            return result;
+        }
+
+        private byte[] Encrypt(byte[] data, byte[] key, byte[] iv)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = 128;
+                aes.BlockSize = 128;
+                aes.Padding = PaddingMode.Zeros;
+
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                {
+                    return PerformCryptography(data, encryptor);
+                }
+            }
+        }
+
+        private byte[] Decrypt(byte[] data, byte[] key, byte[] iv)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = 128;
+                aes.BlockSize = 128;
+                aes.Padding = PaddingMode.Zeros;
+
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                {
+                    return PerformCryptography(data, decryptor);
+                }
+            }
+        }
+
+        private byte[] PerformCryptography(byte[] data, ICryptoTransform cryptoTransform)
+        {
+            using (var ms = new MemoryStream())
+            using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
+            {
+                cryptoStream.Write(data, 0, data.Length);
+                cryptoStream.FlushFinalBlock();
+
+                return ms.ToArray();
             }
         }
     }

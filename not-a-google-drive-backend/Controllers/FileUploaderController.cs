@@ -63,9 +63,19 @@ namespace not_a_google_drive_backend.Controllers
                 return BadRequest("You have not linked any cloud storage");
             }
 
+            ObjectId fileId = ObjectId.GenerateNewId();
+            var serviceConfig = user.CurrentBucket.BucketConfigData;
+            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
+            var result = googleBucketUploader.UploadFile(file, fileId.ToString(), encrypted, compressed);
+
+            if (!result.Success)
+            {
+                return BadRequest("Error while uploading your file!");
+            }
 
             var newFile = new DatabaseModule.Entities.File()
             {
+                Id = fileId,
                 FileName = file.FileName,
                 FileType = file.ContentType,
                 FileSize = file.Length,
@@ -73,21 +83,12 @@ namespace not_a_google_drive_backend.Controllers
                 FolderId = _folderId,
                 Compressed = compressed,
                 Encrypted = encrypted,
+                EncryptionKey = result.EncryptionKey,
+                IV = result.IV,
                 Favourite = favourite,
                 BucketId = user.CurrentBucket.Id
             };
             await _filesRepository.InsertOneAsync(newFile);
-
-
-
-            var serviceConfig = user.CurrentBucket.BucketConfigData;
-            var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.ConfigData, serviceConfig.SelectedBucket);
-            var result = googleBucketUploader.UploadFile(file, newFile.Id.ToString());
-
-            if (!result)
-            {
-                return BadRequest("Error while uploading your file!");
-            }
 
 
             return Ok(JsonSerializer.Serialize(
