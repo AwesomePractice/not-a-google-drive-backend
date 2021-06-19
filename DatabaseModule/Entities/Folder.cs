@@ -23,12 +23,12 @@ namespace DatabaseModule.Entities
         {
         }
 
-        public string Name;
+        public string Name { get; set; }
 
-        public ObjectId OwnerId;
+        public ObjectId OwnerId { get; set; }
 
-        public ObjectId? ParentId;
+        public ObjectId? ParentId { get; set; }
 
-        public bool Favourite;
+        public bool Favourite { get; set; }
     }
 }

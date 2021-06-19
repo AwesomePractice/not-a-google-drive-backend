@@ -10,10 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DatabaseModule.Entities;
+using File = DatabaseModule.Entities.File;
+using System.IO.Compression;
 
 namespace ExternalStorageServices.GoogleBucket
 {
@@ -30,14 +34,11 @@ namespace ExternalStorageServices.GoogleBucket
         {
             var scopes = new[] { @"https://www.googleapis.com/auth/devstorage.full_control" };
 
-
             BucketToUpload = bucketToUpload;
-
 
             var credential = GoogleCredential.FromJson(configData)
                                       .CreateScoped(scopes)
                                       .UnderlyingCredential as ServiceAccountCredential;
-
 
             StorageService = new StorageService(new BaseClientService.Initializer()
             {
@@ -56,29 +57,49 @@ namespace ExternalStorageServices.GoogleBucket
             return availableBuckets.Items.ToList().ConvertAll(x => new String(x.Name));
         }
 
-        public bool UploadFile(IFormFile file, string fileName)
+        public UploadResult UploadFile(IFormFile file, string fileName, bool encryption, bool compressing)
         {
             var newObject = new Google.Apis.Storage.v1.Data.Object()
             {
                 Bucket = BucketToUpload,
                 Name = fileName
             };
+            string encryptionKey = null, iv = null;
 
             // Actions with data here encrypting / compressing
 
             var fileStream = file.OpenReadStream();
+            var fileBytes = ReadToEnd(fileStream);
+
+            #region Encryption and compressing
+            if (compressing)
+            {
+                fileBytes = Compress(fileBytes);
+            }
+            if (encryption)
+            {
+                var actionData = GenerateKeyAndIV(FileActionsConstants.AESFlavour);
+                fileBytes = Encrypt(fileBytes, actionData.Item1, actionData.Item2);
+                encryptionKey = Convert.ToBase64String(actionData.Item1);
+                iv = Convert.ToBase64String(actionData.Item2);
+            }
+            #endregion
+
+
+            Stream fileOutStream = new MemoryStream(fileBytes);
             try
             {
                 var uploadRequest = new ObjectsResource.InsertMediaUpload(StorageService, newObject,
-                BucketToUpload, fileStream, file.ContentType);
+                BucketToUpload, fileOutStream, encryption || compressing ? "application/octet-stream" : file.ContentType);
                 
-              
+
+
                 var res = uploadRequest.Upload();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                return new UploadResult { Success = false};
             }
             finally
             {
@@ -87,15 +108,15 @@ namespace ExternalStorageServices.GoogleBucket
                     fileStream.Dispose();
                 }
             }
-            return true;
+            return new UploadResult(true, encryptionKey, iv);
         }
 
-        public byte[] DownloadFile(string fileId)
+        public byte[] DownloadFile(File fileInfo)
         {
             var newObject = new Google.Apis.Storage.v1.Data.Object()
             {
                 Bucket = BucketToUpload,
-                Name = fileId
+                Name = fileInfo.Id.ToString()
             };
 
             Stream memoryStream = new MemoryStream();
@@ -103,11 +124,21 @@ namespace ExternalStorageServices.GoogleBucket
             try
             {
                 var downloadRequest = new ObjectsResource.GetRequest(StorageService,
-                BucketToUpload, fileId);
+                BucketToUpload, fileInfo.Id.ToString());
                 var resultStatus = downloadRequest.DownloadWithStatus(memoryStream);
                 result = ReadToEnd(memoryStream);
 
-                // Actions with data here decrypting / decompressing
+                #region Decryption and decompressing
+                if (fileInfo.Encrypted)
+                {
+                    result = Decrypt(result, Convert.FromBase64String(fileInfo.EncryptionKey), Convert.FromBase64String(fileInfo.IV)).Take((int)fileInfo.FileSize).ToArray();
+                }
+                if (fileInfo.Compressed)
+                {
+                    result = Decompress(result);
+                }
+                #endregion
+
             }
             catch (Exception ex)
             {
@@ -220,6 +251,124 @@ namespace ExternalStorageServices.GoogleBucket
                     stream.Position = originalPosition;
                 }
             }
+        }
+           
+        
+
+        private (byte[], byte[]) GenerateKeyAndIV(int length)
+        {
+            return (GenerateRandomBytes(length), GenerateRandomBytes(length));
+        }
+
+
+        private byte[] GenerateRandomBytes(int length)
+        {
+            byte[] result = new byte[length / 8];
+            RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
+            rngCsp.GetBytes(result);
+            return result;
+        }
+
+        private byte[] Encrypt(byte[] data, byte[] key, byte[] iv)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = FileActionsConstants.AESFlavour;
+                aes.BlockSize = FileActionsConstants.AESFlavour;
+                aes.Padding = PaddingMode.Zeros;
+
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                {
+                    return PerformCryptography(data, encryptor);
+                }
+            }
+        }
+
+        private byte[] Decrypt(byte[] data, byte[] key, byte[] iv)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = 128;
+                aes.BlockSize = 128;
+                aes.Padding = PaddingMode.Zeros;
+
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                {
+                    return PerformCryptography(data, decryptor);
+                }
+            }
+        }
+
+        private byte[] PerformCryptography(byte[] data, ICryptoTransform cryptoTransform)
+        {
+            using (var ms = new MemoryStream())
+            using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
+            {
+                cryptoStream.Write(data, 0, data.Length);
+                cryptoStream.FlushFinalBlock();
+
+                return ms.ToArray();
+            }
+        }
+
+
+        //public byte[] Compress(byte[] source)
+        //{
+        //    using (MemoryStream sourceStream = new MemoryStream(source))
+        //    {
+        //        using (MemoryStream targetStream = new MemoryStream())
+        //        {
+        //            using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
+        //            {
+        //                sourceStream.CopyTo(compressionStream);
+        //                return ReadToEnd(targetStream);
+        //            }
+        //        }
+        //    }
+        //}
+
+        //public byte[] Decompress(byte[] source)
+        //{
+        //    using (MemoryStream sourceStream = new MemoryStream(source))
+        //    {
+        //        using (MemoryStream targetStream = new MemoryStream())
+        //        {
+                    
+        //            using (GZipStream decompressionStream = new GZipStream(sourceStream, CompressionMode.Decompress))
+        //            {
+                        
+        //                decompressionStream.CopyTo(targetStream);
+        //                return targetStream.ToArray();
+        //            }
+        //        }
+        //    }
+        //}
+
+        public byte[] Compress(byte[] data)
+        {
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(output, CompressionLevel.Optimal))
+            {
+                dstream.Write(data, 0, data.Length);
+            }
+            return output.ToArray();
+        }
+
+        public byte[] Decompress(byte[] data)
+        {
+            MemoryStream input = new MemoryStream(data);
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(input, CompressionMode.Decompress))
+            {
+                dstream.CopyTo(output);
+            }
+            return output.ToArray();
         }
     }
 }
