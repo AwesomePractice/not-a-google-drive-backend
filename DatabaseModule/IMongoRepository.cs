@@ -67,5 +67,7 @@ namespace DatabaseModule
 
         Task FindOneAndUpdateAsync(String id, UpdateDefinition<TDocument> update);
 
+        Task<IEnumerable<TDocument>> FindAsync(FilterDefinition<TDocument> filter);
+
     }
 }

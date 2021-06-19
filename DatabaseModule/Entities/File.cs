@@ -24,6 +24,8 @@ namespace DatabaseModule.Entities
 
         public ObjectId BucketId;
 
+        public List<ObjectId> AllowedUsers;
+
         //public string EncryptionKey;
 
         //public int CompressionAlgorithm;

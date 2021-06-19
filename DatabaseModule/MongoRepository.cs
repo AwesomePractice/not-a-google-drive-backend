@@ -210,5 +210,14 @@ namespace DatabaseModule
             FilterDefinition<TDocument> filter = Builders<TDocument>.Filter.Where(x => x.Id == new ObjectId(id));
             return Task.Run(() => _collection.FindOneAndUpdateAsync(filter, update));
         }
+
+        public virtual Task<IEnumerable<TDocument>> FindAsync(FilterDefinition<TDocument> filter)
+        {
+            return Task.Run(async () =>
+            {
+                var docs = (await _collection.FindAsync(filter)).ToEnumerable();
+                return docs;
+            });
+        }
     }
 }

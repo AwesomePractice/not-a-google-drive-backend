@@ -16,6 +16,8 @@ namespace not_a_google_drive_backend.DTO.Response
 
         //[JsonConverter(typeof(UserFilesInfoFolder))]
         public UserFilesInfoFolder RootFolder;
+
+        public List<UserFilesInfoFile> AvailableFiles;
     }
 
     public class UserFilesInfoFolder
