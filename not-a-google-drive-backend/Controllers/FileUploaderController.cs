@@ -53,7 +53,7 @@ namespace not_a_google_drive_backend.Controllers
             var file = files.First();
 
             ObjectId _folderId = new ObjectId(folderId);
-            bool available = await FileFolderManager.CheckIsFolderAvailableToUser(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
+            bool available = await FileFolderManager.CanAccessFolder(Tools.AuthenticationManager.GetUserId(User), _folderId, _foldersRepository);
             if (!available) return BadRequest("Folder not available or doesn't exist");
 
 
@@ -236,14 +236,14 @@ namespace not_a_google_drive_backend.Controllers
         public async Task<ActionResult> SwitchFavouriteFile(FavouriteSwitch favouriteSwitch)
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
-            var file = await _filesRepository.FindByIdAsync(favouriteSwitch.FileId);
+            var file = await _filesRepository.FindByIdAsync(favouriteSwitch.Id);
 
-            if (!FileFolderManager.CanAccessFile(userId, file))
+            if (!FileFolderManager.CanDeleteFile(userId, file))
             {
                 return BadRequest("You don't have access to file or it doesn't exist");
             }
 
-            await _filesRepository.UpdateOneAsync(favouriteSwitch.FileId.ToString(), "Favourite", favouriteSwitch.IsFavourite);
+            await _filesRepository.UpdateOneAsync(favouriteSwitch.Id.ToString(), "Favourite", favouriteSwitch.IsFavourite);
             file.Favourite = favouriteSwitch.IsFavourite;
 
             return Ok(JsonSerializer.Serialize(
@@ -255,6 +255,26 @@ namespace not_a_google_drive_backend.Controllers
                         new UserFilesInfoFileSerializer()
                 }
             }));
+        }
+
+        [Authorize]
+        [HttpGet("AllFavouriteFiles")]
+        public async Task<ActionResult<List<FileInfo>>> AllFavouriteFiles()
+        {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
+
+            var files = await _filesRepository.FilterByAsync(file => file.OwnerId == userId && file.Favourite);
+
+            return Ok(JsonSerializer.Serialize(
+                files.Select(f => new UserFilesInfoFile(f)),
+                new JsonSerializerOptions()
+                    {
+                        Converters =
+                        {
+                            new UserFilesInfoFileSerializer()
+                        }
+                    }
+                ));
         }
 
             //[Authorize]

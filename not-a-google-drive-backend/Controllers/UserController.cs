@@ -32,7 +32,6 @@ namespace not_a_google_drive_backend.Controllers
         private readonly IMongoRepository<File> _filesRepository;
         private readonly IMongoRepository<DatabaseModule.Entities.Bucket> _bucketsRepository;
 
-        private readonly FileFolderManager _folderManager;
 
         public UserController(IConfiguration configuration,
             MongoRepository<User> userRep, MongoRepository<Folder> folderRep, MongoRepository<File> fileRep, 
@@ -44,7 +43,6 @@ namespace not_a_google_drive_backend.Controllers
             _foldersRepository = folderRep;
             _filesRepository = fileRep;
             _bucketsRepository = bucketRep;
-            _folderManager = new FileFolderManager();
         }
 
         [HttpPost("SignUp")]
@@ -163,7 +161,7 @@ namespace not_a_google_drive_backend.Controllers
             ObjectId userId = new ObjectId(User.FindFirst("id").Value);
 
             // Currently supports only own folders
-            var folders = _foldersRepository.FilterBy(folder => folder.OwnerId == userId).ToList();
+            var folders = (await _foldersRepository.FilterByAsync(folder => folder.OwnerId == userId)).ToList();
             var folderIds = folders.Select(folder => folder.Id);
 
             var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId)).ToList();
