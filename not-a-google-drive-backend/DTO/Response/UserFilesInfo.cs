@@ -27,13 +27,13 @@ namespace not_a_google_drive_backend.DTO.Response
             Name = folder.Name;
             Files = Array.Empty<UserFilesInfoFile>();
             Children = Array.Empty<UserFilesInfoFolder>();
-            Id = folder.Id;
+            Id = folder.Id.ToString();
             IsFavourite = folder.Favourite;
         }
 
         public string Name;
 
-        public ObjectId Id;
+        public string Id;
 
         public bool IsFavourite;
 
@@ -46,7 +46,7 @@ namespace not_a_google_drive_backend.DTO.Response
     {
         public UserFilesInfoFile(File file)
         {
-            Id = file.Id;
+            Id = file.Id.ToString();
             Name = file.FileName;
             Size = file.FileSize;
             Type = file.FileType;
@@ -56,7 +56,7 @@ namespace not_a_google_drive_backend.DTO.Response
         }
 
         //[JsonConverter(typeof(ObjectId))]
-        public ObjectId Id;
+        public string Id;
 
         public string Name;
 
