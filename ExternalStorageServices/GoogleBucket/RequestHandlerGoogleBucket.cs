@@ -126,10 +126,18 @@ namespace ExternalStorageServices.GoogleBucket
                 BucketToUpload, fileInfo.Id.ToString());
                 var resultStatus = downloadRequest.DownloadWithStatus(memoryStream);
                 result = ReadToEnd(memoryStream);
+
+                #region Decryption and decompressing
+                if (fileInfo.Compressed)
+                {
+                    result = Decompress(result);
+                }
                 if (fileInfo.Encrypted)
                 {
                     result = Decrypt(result, Convert.FromBase64String(fileInfo.EncryptionKey), Convert.FromBase64String(fileInfo.IV));
                 }
+                #endregion
+
             }
             catch (Exception ex)
             {
@@ -324,19 +332,17 @@ namespace ExternalStorageServices.GoogleBucket
             }
         }
 
-        public void Decompress(string compressedFile, string targetFile)
+        public byte[] Decompress(byte[] source)
         {
-            // поток для чтения из сжатого файла
-            using (FileStream sourceStream = new FileStream(compressedFile, FileMode.OpenOrCreate))
+            using (MemoryStream sourceStream = new MemoryStream(source))
             {
-                // поток для записи восстановленного файла
-                using (FileStream targetStream = File.Create(targetFile))
+                using (MemoryStream targetStream = new MemoryStream())
                 {
-                    // поток разархивации
+                    
                     using (GZipStream decompressionStream = new GZipStream(sourceStream, CompressionMode.Decompress))
                     {
                         decompressionStream.CopyTo(targetStream);
-                        Console.WriteLine("Восстановлен файл: {0}", targetFile);
+                        return ReadToEnd(targetStream);
                     }
                 }
             }
