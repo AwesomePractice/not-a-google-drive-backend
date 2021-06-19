@@ -17,7 +17,7 @@ namespace not_a_google_drive_backend.DTO.Response
         //[JsonConverter(typeof(UserFilesInfoFolder))]
         public UserFilesInfoFolder RootFolder;
 
-        public List<UserFilesInfoFile> AvailableFiles;
+        public List<FileInfoWithUser> AvailableFiles;
     }
 
     public class UserFilesInfoFolder
@@ -27,13 +27,13 @@ namespace not_a_google_drive_backend.DTO.Response
             Name = folder.Name;
             Files = Array.Empty<UserFilesInfoFile>();
             Children = Array.Empty<UserFilesInfoFolder>();
-            Id = folder.Id;
+            Id = folder.Id.ToString();
             IsFavourite = folder.Favourite;
         }
 
         public string Name;
 
-        public ObjectId Id;
+        public string Id;
 
         public bool IsFavourite;
 
@@ -46,7 +46,7 @@ namespace not_a_google_drive_backend.DTO.Response
     {
         public UserFilesInfoFile(File file)
         {
-            Id = file.Id;
+            Id = file.Id.ToString();
             Name = file.FileName;
             Size = file.FileSize;
             Type = file.FileType;
@@ -56,7 +56,7 @@ namespace not_a_google_drive_backend.DTO.Response
         }
 
         //[JsonConverter(typeof(ObjectId))]
-        public ObjectId Id;
+        public string Id;
 
         public string Name;
 
@@ -69,5 +69,15 @@ namespace not_a_google_drive_backend.DTO.Response
         public bool Compressed;
 
         public bool Favourite;
+    }
+
+    public class FileInfoWithUser : UserFilesInfoFile
+    {
+        public FileInfoWithUser(File file) : base(file)
+        {
+            OwnerId = file.OwnerId.ToString();
+        }
+
+        public string OwnerId;
     }
 }

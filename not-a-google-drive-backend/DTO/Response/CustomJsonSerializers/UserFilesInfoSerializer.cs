@@ -16,36 +16,23 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
 
         public override void Write(Utf8JsonWriter writer, UserFilesInfo value, JsonSerializerOptions options)
         {
-            ObjectIdSerializer objectIdSerializer = new ObjectIdSerializer();
+            //ObjectIdSerializer objectIdSerializer = new ObjectIdSerializer();
             UserFilesInfoFolderSerializer folderSerializer = new UserFilesInfoFolderSerializer();
             UserFilesInfoFileSerializer fileSerializer = new UserFilesInfoFileSerializer();
+            FileInfoWithUserSerializer fileInfoWithUserSerializer = new FileInfoWithUserSerializer();
 
             writer.WriteStartObject();
-            writer.WritePropertyName("owner_id");
-            objectIdSerializer.Write(writer, value.OwnerId, new JsonSerializerOptions());
+            writer.WriteString("owner_id", value.OwnerId.ToString());
+            //objectIdSerializer.Write(writer, value.OwnerId, new JsonSerializerOptions());
             writer.WritePropertyName("root_folder");
             folderSerializer.Write(writer, value.RootFolder, new JsonSerializerOptions());
             writer.WritePropertyName("available_files");
             writer.WriteStartArray();
             foreach (var file in value.AvailableFiles) {
-                fileSerializer.Write(writer, file, new JsonSerializerOptions());
+                fileInfoWithUserSerializer.Write(writer, file, new JsonSerializerOptions());
             }
             writer.WriteEndArray();
             writer.WriteEndObject();
-        }
-    }
-
-    public class ObjectIdSerializer : JsonConverter<ObjectId>
-    {
-        public override ObjectId Read(
-            ref Utf8JsonReader reader,
-            Type typeToConvert,
-            JsonSerializerOptions options) =>
-                throw new NotImplementedException();
-
-        public override void Write(Utf8JsonWriter writer, ObjectId value, JsonSerializerOptions options)
-        {
-            writer.WriteStringValue(value.ToString());
         }
     }
 
@@ -93,9 +80,7 @@ namespace not_a_google_drive_backend.DTO.Response.CustomJsonSerializers
         public override void Write(Utf8JsonWriter writer, UserFilesInfoFile value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("id");
-            ObjectIdSerializer objectIdSerializer = new ObjectIdSerializer();
-            objectIdSerializer.Write(writer, value.Id, new JsonSerializerOptions());
+            writer.WriteString("id", value.Id.ToString());
             writer.WriteString("name", value.Name);
             writer.WriteNumber("size", value.Size);
             writer.WriteString("type", value.Type);

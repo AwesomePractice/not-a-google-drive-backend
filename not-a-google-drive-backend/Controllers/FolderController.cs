@@ -116,18 +116,13 @@ namespace not_a_google_drive_backend.Controllers
         
         [Authorize]
         [HttpGet("AllFavouriteFolders")]
-        public async Task<ActionResult<List<ObjectId>>> AllFavouriteFolders()
+        public async Task<ActionResult<List<string>>> AllFavouriteFolders()
         {
             var userId = AuthenticationManager.GetUserId(User);
 
             var favouriteFolders = (await _foldersRepository.FilterByAsync(folder => folder.OwnerId == userId && folder.Favourite))
                 .Select(folder => folder.Id);
-            return Ok(JsonSerializer.Serialize(favouriteFolders, new JsonSerializerOptions() { 
-                Converters =
-                {
-                    new ObjectIdSerializer()
-                }
-            }));
+            return Ok(JsonSerializer.Serialize(favouriteFolders.Select( folderId => folderId.ToString())));
         }
 
         [Authorize]

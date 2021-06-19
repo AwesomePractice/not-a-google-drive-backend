@@ -179,7 +179,7 @@ namespace not_a_google_drive_backend.Controllers
                     RootFolder = FileFolderManager.CombineFilesAndFolders(folders, 
                         files.Where(file => file.OwnerId == userId)),
                     AvailableFiles = files.Where(file => file.OwnerId != userId)
-                        .Select(f => new UserFilesInfoFile(f)).ToList()
+                        .Select(f => new FileInfoWithUser(f)).ToList()
                 }   
             };
 
@@ -248,6 +248,60 @@ namespace not_a_google_drive_backend.Controllers
             await _filesRepository.UpdateOneAsync(request.FileId, "AllowedUsers", updatedAllowedList);
 
             return Ok();
+        }
+
+
+        [Authorize]
+        [HttpPost("StopSharingFile")]
+        public async Task<ActionResult> StopSharingFileWithUser(ShareFileRequest request)
+        {
+            var userId = AuthenticationManager.GetUserId(User);
+
+            if (request.UserId == userId.ToString())
+            {
+                return BadRequest("You can't stop sharing file with yourself");
+            }
+
+            var file = await _filesRepository.FindByIdAsync(request.FileId);
+
+            if (!file.AllowedUsers.Contains(new ObjectId(request.UserId)))
+            {
+                return BadRequest("File is not shared with this user");
+            }
+
+            var updatedAllowedList = file.AllowedUsers;
+            updatedAllowedList.Remove(new ObjectId(request.UserId));
+
+            if (!FileFolderManager.CanDeleteFile(userId, file))
+            {
+                return BadRequest("You don't have rights to stop sharing this file");
+            }
+
+            await _filesRepository.UpdateOneAsync(request.FileId, "AllowedUsers", updatedAllowedList);
+
+            return Ok();
+        }
+
+
+        [Authorize]
+        [HttpGet("FilesSharedByMe")]
+        public async Task<ActionResult<List<UserFilesInfoFile>>> FilesSharedByMe()
+        {
+            var userId = AuthenticationManager.GetUserId(User);
+
+            var files = (await _filesRepository.FilterByAsync(file => file.OwnerId == userId && file.AllowedUsers.Count() != 0)).ToList();
+
+            return Ok(JsonSerializer.Serialize(files.Select(f => new SharedFileInfo(f)),
+                            new JsonSerializerOptions()
+                            {
+                                Converters =
+                        {
+                            new SharedFileSerializer()
+                        }
+                            }
+                ));
+
+
         }
     }
 }

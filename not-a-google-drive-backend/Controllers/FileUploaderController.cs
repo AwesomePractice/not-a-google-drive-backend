@@ -159,12 +159,12 @@ namespace not_a_google_drive_backend.Controllers
             }
 
             return Ok(JsonSerializer.Serialize(
-                new UserFilesInfoFile(file),
+                new FileInfoWithUser(file),
                 new JsonSerializerOptions()
                 {
                     Converters =
                     {
-                        new UserFilesInfoFileSerializer()
+                        new FileInfoWithUserSerializer()
                     }
                 }));
         }
