@@ -58,7 +58,7 @@ namespace not_a_google_drive_backend.Tools
 
         internal static bool CanAccessFile(ObjectId userId, File file)
         {
-            return file.OwnerId == userId;
+            return file.OwnerId == userId || (file.AllowedUsers != null && file.AllowedUsers.Contains(userId));
         }
 
         internal static bool CanDeleteFile(ObjectId userId, File file)
