@@ -3,8 +3,6 @@ using DatabaseModule.Entities;
 using ExternalStorageServices.GoogleBucket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using not_a_google_drive_backend.DTO.Request;
@@ -18,6 +16,7 @@ using System.Text.Json;
 using not_a_google_drive_backend.DTO.Response.CustomJsonSerializers;
 using not_a_google_drive_backend.DTO.Response;
 using System.IO;
+using Microsoft.AspNetCore.Mvc;
 
 namespace not_a_google_drive_backend.Controllers
 {
