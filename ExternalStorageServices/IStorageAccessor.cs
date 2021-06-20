@@ -1,18 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DatabaseModule.Entities;
+using Microsoft.AspNetCore.Http;
 
 namespace ExternalStorageServices
 {
     interface IStorageAccessor
     {
-        bool UploadFile(IFormFile file, string fileName);
+        UploadResult UploadFile(IFormFile file, string fileName, bool encryption, bool compressing);
 
-        byte[] DownloadFile(string fileId);
+        byte[] DownloadFile(File fileInfo);
 
         bool DeleteFile(string fileId);
     }

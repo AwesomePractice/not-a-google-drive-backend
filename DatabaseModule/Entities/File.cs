@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,29 +12,29 @@ namespace DatabaseModule.Entities
     {
         public File() { }
 
-        public string FileName;
+        public string FileName { get; set; }
 
-        public long FileSize;
+        public long FileSize { get; set; }
 
-        public string FileType;
+        public string FileType { get; set; }
 
-        public ObjectId OwnerId;
+        public ObjectId OwnerId { get; set; }
 
-        public ObjectId FolderId;
+        public ObjectId FolderId { get; set; }
 
-        public ObjectId BucketId;
+        public ObjectId BucketId { get; set; }
+
+        public bool Encrypted { get; set; }
 
         public List<ObjectId> AllowedUsers;
 
-        //public string EncryptionKey;
 
-        //public int CompressionAlgorithm;
+        public string EncryptionKey { get; set; }
+        public string IV { get; set; }
 
-        public bool Encrypted;
+        public bool Compressed { get; set; }
 
-        public bool Compressed;
-
-        public bool Favourite;
+        public bool Favourite { get; set; }
 
     }
 }
