@@ -140,5 +140,21 @@ namespace not_a_google_drive_backend.Controllers
 
             return Ok();
         }
+
+
+        [Authorize]
+        [HttpGet("AllMyFolders")]
+        public async Task<ActionResult<List<IdAndName>>> AllMyFolders()
+        {
+            var userId = AuthenticationManager.GetUserId(User);
+
+            var folders = (await _foldersRepository.FilterByAsync(f => f.OwnerId == userId)).ToList();
+
+            return Ok(folders.Select(f => new IdAndName()
+            {
+                Id = f.Id.ToString(),
+                Name = f.Name
+            }));
+        }
     }
 }

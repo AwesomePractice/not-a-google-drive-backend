@@ -278,25 +278,40 @@ namespace not_a_google_drive_backend.Controllers
                 ));
         }
 
-            //[Authorize]
-            //[HttpGet("GetAllBucketFiles")]
-            //public async Task<ActionResult<List<string>>> GetAllBucketFilesAsync()
-            //{
+        [Authorize]
+        [HttpGet("AllMyFiles")]
+        public async Task<ActionResult<List<IdAndName>>> AllMyFiles()
+        {
+            var userId = Tools.AuthenticationManager.GetUserId(User);
 
-            //    var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
-            //    if (user.GoogleBucketConfigData == null)
-            //    {
-            //        return BadRequest("You have not linked any cloud storage");
-            //    }
+            var files = (await _filesRepository.FilterByAsync(file => file.OwnerId == userId)).ToList();
 
-
-            //    var serviceConfig = user.GoogleBucketConfigData;
-            //    var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
-            //        serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
-            //    var result = googleBucketUploader.GetFilesList();
-
-            //    return Ok(result);
-            //}
-
+            return Ok(files.Select(f => new IdAndName()
+            {
+                Id = f.Id.ToString(),
+                Name = f.FileName
+            }));
         }
+
+        //[Authorize]
+        //[HttpGet("GetAllBucketFiles")]
+        //public async Task<ActionResult<List<string>>> GetAllBucketFilesAsync()
+        //{
+
+        //    var user = await _usersRepository.FindOneAsync(x => x.Id == new ObjectId(User.FindFirst("id").Value));
+        //    if (user.GoogleBucketConfigData == null)
+        //    {
+        //        return BadRequest("You have not linked any cloud storage");
+        //    }
+
+
+        //    var serviceConfig = user.GoogleBucketConfigData;
+        //    var googleBucketUploader = new RequestHandlerGoogleBucket(serviceConfig.Email, serviceConfig.ProjectId,
+        //        serviceConfig.ClientId, serviceConfig.Secret, serviceConfig.SelectedBucket);
+        //    var result = googleBucketUploader.GetFilesList();
+
+        //    return Ok(result);
+        //}
+
+    }
 }
