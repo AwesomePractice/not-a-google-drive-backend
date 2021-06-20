@@ -279,17 +279,22 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpGet("AllMyFiles")]
-        public async Task<ActionResult<List<IdAndName>>> AllMyFiles()
+        public async Task<ActionResult<List<string>>> AllMyFiles()
         {
             var userId = Tools.AuthenticationManager.GetUserId(User);
 
             var files = (await _filesRepository.FilterByAsync(file => file.OwnerId == userId)).ToList();
 
-            return Ok(files.Select(f => new IdAndName()
-            {
-                Id = f.Id.ToString(),
-                Name = f.FileName
-            }));
+            return Ok(JsonSerializer.Serialize(
+                files.Select(f => new FileInfoWithUser(f)),
+                new JsonSerializerOptions()
+                {
+                    Converters =
+                    {
+                        new FileInfoWithUserSerializer()
+                    }
+                }
+                ));
         }
 
         //[Authorize]

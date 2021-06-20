@@ -144,17 +144,13 @@ namespace not_a_google_drive_backend.Controllers
 
         [Authorize]
         [HttpGet("AllMyFolders")]
-        public async Task<ActionResult<List<IdAndName>>> AllMyFolders()
+        public async Task<ActionResult<List<SimpleFolder>>> AllMyFolders()
         {
             var userId = AuthenticationManager.GetUserId(User);
 
             var folders = (await _foldersRepository.FilterByAsync(f => f.OwnerId == userId)).ToList();
 
-            return Ok(folders.Select(f => new IdAndName()
-            {
-                Id = f.Id.ToString(),
-                Name = f.Name
-            }));
+            return Ok(folders.Select(f => new SimpleFolder(f)));
         }
     }
 }

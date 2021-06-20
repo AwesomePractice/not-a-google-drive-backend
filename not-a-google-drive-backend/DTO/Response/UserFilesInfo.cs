@@ -20,22 +20,29 @@ namespace not_a_google_drive_backend.DTO.Response
         public List<FileInfoWithUser> AvailableFiles;
     }
 
-    public class UserFilesInfoFolder
+    public class SimpleFolder
     {
-        public UserFilesInfoFolder(Folder folder)
+        public SimpleFolder(Folder folder)
         {
             Name = folder.Name;
-            Files = Array.Empty<UserFilesInfoFile>();
-            Children = Array.Empty<UserFilesInfoFolder>();
             Id = folder.Id.ToString();
             IsFavourite = folder.Favourite;
         }
 
-        public string Name;
+        public string Name { get; set; }
 
-        public string Id;
+        public string Id { get; set; }
 
-        public bool IsFavourite;
+        public bool IsFavourite { get; set; }
+    }
+
+    public class UserFilesInfoFolder : SimpleFolder
+    {
+        public UserFilesInfoFolder(Folder folder) : base(folder)
+        {
+            Files = Array.Empty<UserFilesInfoFile>();
+            Children = Array.Empty<UserFilesInfoFolder>();
+        }
 
         public UserFilesInfoFile[] Files;
 
