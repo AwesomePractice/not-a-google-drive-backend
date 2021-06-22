@@ -164,34 +164,43 @@ namespace not_a_google_drive_backend.Controllers
             var folders = (await _foldersRepository.FilterByAsync(folder => folder.OwnerId == userId)).ToList();
             var folderIds = folders.Select(folder => folder.Id);
 
-            var files = _filesRepository.FilterBy(file => folderIds.Contains(file.FolderId) || file.AllowedUsers.Contains(userId)).ToList();
+            var files = (await _filesRepository.FilterByAsync(file => folderIds.Contains(file.FolderId) || file.AllowedUsers.Contains(userId))).ToList();
 
             if (folders.Count == 0)
             {
                 return BadRequest("User doesn't have any folder (even required root)");
             }
 
-            List<UserFilesInfo> response = new List<UserFilesInfo>
+            try
+            {
+                var rootFolder = FileFolderManager.CombineFilesAndFolders(folders, files.Where(file => file.OwnerId == userId));
+
+                List<UserFilesInfo> response = new List<UserFilesInfo>
             {
                 new UserFilesInfo()
                 {
                     OwnerId = userId,
-                    RootFolder = FileFolderManager.CombineFilesAndFolders(folders, 
-                        files.Where(file => file.OwnerId == userId)),
+                    RootFolder = rootFolder,
                     AvailableFiles = files.Where(file => file.OwnerId != userId)
                         .Select(f => new FileInfoWithUser(f)).ToList()
-                }   
-            };
-
-            JsonSerializerOptions options = new JsonSerializerOptions
-            {
-                Converters =
-                {
-                    new UserFilesInfoSerializer()
                 }
             };
 
-            return Ok(JsonSerializer.Serialize<List<UserFilesInfo>>(response, options));
+                JsonSerializerOptions options = new JsonSerializerOptions
+                {
+                    Converters =
+                {
+                    new UserFilesInfoSerializer()
+                }
+                };
+
+                return Ok(JsonSerializer.Serialize<List<UserFilesInfo>>(response, options));
+            }
+            catch(ArgumentException e)
+            {
+                _logger.LogError("User {userId} requested /FilesInfo but ArgumentException happened: {e}", userId, e);
+                return BadRequest("Unknown error");
+            }
         }
 
         [HttpPost("UserInfo")]

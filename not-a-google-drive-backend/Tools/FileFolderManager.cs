@@ -15,7 +15,15 @@ namespace not_a_google_drive_backend.Tools
     {
         public static UserFilesInfoFolder CombineFilesAndFolders(List<Folder> folders, IEnumerable<File> files)
         {
+            if(folders == null || files == null)
+            {
+                throw new ArgumentException("folders and files can't be a null");
+            }
             var rootFolder = folders.First(f => f.ParentId == null);
+            if(rootFolder == null)
+            {
+                throw new ArgumentException("folders should have a folder with ParentId == null");
+            }
             List<Folder> stack = new List<Folder> { rootFolder };
             List<UserFilesInfoFolder> stackDto = new List<UserFilesInfoFolder> { new UserFilesInfoFolder(rootFolder) };
             UserFilesInfoFolder result = stackDto.First();

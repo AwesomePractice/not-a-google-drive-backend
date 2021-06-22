@@ -19,4 +19,9 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DatabaseModule\DatabaseModule.csproj" />
+    <ProjectReference Include="..\not-a-google-drive-backend\not-a-google-drive-backend.csproj" />
+  </ItemGroup>
+
 </Project>
