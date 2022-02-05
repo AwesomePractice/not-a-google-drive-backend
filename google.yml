@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: not-a-google-drive-server
+    app: not-a-google-drive-backend
   managedFields:
     - apiVersion: apps/v1
       fieldsType: FieldsV1
@@ -15,10 +15,7 @@ metadata:
           'f:progressDeadlineSeconds': {}
           'f:replicas': {}
           'f:revisionHistoryLimit': {}
-          'f:selector':
-            'f:matchLabels':
-              .: {}
-              'f:app': {}
+          'f:selector': {}
           'f:strategy':
             'f:rollingUpdate':
               .: {}
@@ -32,7 +29,7 @@ metadata:
                 'f:app': {}
             'f:spec':
               'f:containers':
-                'k:{"name":"not-a-google-drive-backend-sha256-1"}':
+                'k:{"name":"not-a-google-drive-backend-1"}':
                   .: {}
                   'f:image': {}
                   'f:imagePullPolicy': {}
@@ -47,7 +44,7 @@ metadata:
               'f:terminationGracePeriodSeconds': {}
       manager: GoogleCloudConsole
       operation: Update
-      time: '2021-05-29T17:06:53Z'
+      time: '2022-02-05T22:01:42Z'
     - apiVersion: apps/v1
       fieldsType: FieldsV1
       fieldsV1:
@@ -81,14 +78,14 @@ metadata:
           'f:updatedReplicas': {}
       manager: kube-controller-manager
       operation: Update
-      time: '2021-05-29T17:06:56Z'
-  name: not-a-google-drive-server
+      time: '2022-02-05T22:01:54Z'
+  name: not-a-google-drive-backend
   namespace: default
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: not-a-google-drive-server
+      app: not-a-google-drive-backend
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -97,19 +94,19 @@ spec:
   template:
     metadata:
       labels:
-        app: not-a-google-drive-server
+        app: not-a-google-drive-backend
     spec:
       containers:
         - image: >-
-            gcr.io/emerald-folio-314609/github.com/awesomepractice/not-a-google-drive-backend
+            gcr.io/molten-sandbox-340419/github.com/awesomepractice/not-a-google-drive-backend
           imagePullPolicy: IfNotPresent
-          name: not-a-google-drive-backend-sha256-1
+          name: not-a-google-drive-backend-1
 ---
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   labels:
-    app: not-a-google-drive-server
+    app: not-a-google-drive-backend
   managedFields:
     - apiVersion: autoscaling/v2beta1
       fieldsType: FieldsV1
@@ -128,7 +125,7 @@ metadata:
             'f:name': {}
       manager: GoogleCloudConsole
       operation: Update
-      time: '2021-05-29T17:06:53Z'
+      time: '2022-02-05T22:01:42Z'
     - apiVersion: autoscaling/v1
       fieldsType: FieldsV1
       fieldsV1:
@@ -136,12 +133,14 @@ metadata:
           'f:annotations':
             .: {}
             'f:autoscaling.alpha.kubernetes.io/conditions': {}
+            'f:autoscaling.alpha.kubernetes.io/current-metrics': {}
         'f:status':
           'f:currentReplicas': {}
+          'f:desiredReplicas': {}
       manager: vpa-recommender
       operation: Update
-      time: '2021-05-29T17:07:08Z'
-  name: not-a-google-drive-server-hpa-bdfm
+      time: '2022-02-05T22:01:59Z'
+  name: not-a-google-drive-backend-hpa-8vbb
   namespace: default
 spec:
   maxReplicas: 5
@@ -154,7 +153,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: not-a-google-drive-server
+    name: not-a-google-drive-backend
 ---
 apiVersion: v1
 kind: Service
@@ -164,7 +163,7 @@ metadata:
   finalizers:
     - service.kubernetes.io/load-balancer-cleanup
   labels:
-    app: not-a-google-drive-server
+    app: not-a-google-drive-backend
   managedFields:
     - apiVersion: v1
       fieldsType: FieldsV1
@@ -179,25 +178,6 @@ metadata:
             .: {}
             'k:{"port":80,"protocol":"TCP"}':
               .: {}
-              'f:name': {}
-              'f:port': {}
-              'f:protocol': {}
-              'f:targetPort': {}
-            'k:{"port":5000,"protocol":"TCP"}':
-              .: {}
-              'f:name': {}
-              'f:port': {}
-              'f:protocol': {}
-              'f:targetPort': {}
-            'k:{"port":5001,"protocol":"TCP"}':
-              .: {}
-              'f:name': {}
-              'f:port': {}
-              'f:protocol': {}
-              'f:targetPort': {}
-            'k:{"port":49172,"protocol":"TCP"}':
-              .: {}
-              'f:name': {}
               'f:port': {}
               'f:protocol': {}
               'f:targetPort': {}
@@ -208,7 +188,7 @@ metadata:
           'f:type': {}
       manager: GoogleCloudConsole
       operation: Update
-      time: '2021-05-29T12:53:30Z'
+      time: '2022-02-05T22:06:50Z'
     - apiVersion: v1
       fieldsType: FieldsV1
       fieldsV1:
@@ -221,44 +201,23 @@ metadata:
             'f:ingress': {}
       manager: kube-controller-manager
       operation: Update
-      time: '2021-05-29T12:54:01Z'
-    - apiVersion: v1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            'f:gcb-build-id': {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2021-05-29T16:24:33Z'
-  name: not-a-google-drive-server-service
+      time: '2022-02-05T22:07:31Z'
+  name: not-a-google-drive-backend-service
   namespace: default
 spec:
-  clusterIP: 10.28.7.29
+  clusterIP: 10.112.0.11
+  clusterIPs:
+    - 10.112.0.11
   externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
   ports:
-    - name: 80-to-80-tcp
-      nodePort: 31348
+    - nodePort: 32604
       port: 80
       protocol: TCP
       targetPort: 80
-    - name: 5000-to-5000-tcp
-      nodePort: 30172
-      port: 5000
-      protocol: TCP
-      targetPort: 5000
-    - name: 5001-to-5001-tcp
-      nodePort: 30416
-      port: 5001
-      protocol: TCP
-      targetPort: 5001
-    - name: 49172-to-49172-tcp
-      nodePort: 32542
-      port: 49172
-      protocol: TCP
-      targetPort: 49172
   selector:
-    app: not-a-google-drive-server
+    app: not-a-google-drive-backend
   sessionAffinity: None
   type: LoadBalancer
